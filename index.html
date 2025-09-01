@@ -145,29 +145,27 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
-    // ==================== CONFIG ====================
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
 
-    /* ==================== MODAL (zoom + miniaturas) ==================== */
     class ModalImovel {
       constructor(id){
         this.modal = document.getElementById(id);
         this.body = this.modal.querySelector('#modal-body');
         this.close = this.modal.querySelector('.close');
         this.close.onclick = () => this.fechar();
-        window.addEventListener('keydown', e => { if(e.key === 'Escape') this.fechar(); });
-        window.onclick = e => { if(e.target == this.modal) this.fechar(); };
+        window.addEventListener('keydown', e => { if(e.key==='Escape') this.fechar(); });
+        window.onclick = e => { if(e.target==this.modal) this.fechar(); };
+        this.autoPlayInterval = null;
       }
+
       abrir(imovel){
-        const imgs = (imovel.imagens||'').split(' ').filter(i => i);
+        const imgs = (imovel.imagens||'').split(' ').filter(i=>i);
         let idxImg = 0;
         this.body.innerHTML = `
           <h2>${imovel.titulo}</h2>
           <p><b>Código:</b> ${imovel.ref||''}</p>
           <p><b>Preço:</b> R$ ${Number(imovel.preco).toLocaleString()} | <b>Cidade:</b> ${imovel.cidade} | <b>Bairro:</b> ${imovel.bairro||''} | <b>Tipo:</b> ${imovel.tipo||''} | <b>Operação:</b> ${imovel.operacao||''}</p>
-          <p><b>Área Construída:</b> ${imovel.area||0}m² | <b>Área Total:</b> ${imovel.area_total||0}m² | <b>Quartos:</b> ${imovel.quartos||0} | <b>Banheiros:</b> ${imovel.banheiros||0} | <b>Garagem:</b> ${imovel.garagem||0}</p>
-          <p><b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} | <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()} | <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''} | <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</p>
           <p>${imovel.descricao||''}</p>
           <div style="position:relative; overflow:hidden;">
             <img id="main-img" src="${imgs[0]||'https://via.placeholder.com/400x250'}">
@@ -177,95 +175,95 @@
           <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}">`).join('')}</div>
           <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
         `;
+        const main=this.body.querySelector('#main-img');
+        const mini=this.body.querySelectorAll('.miniaturas img');
+        const left=this.body.querySelector('.nav-left');
+        const right=this.body.querySelector('.nav-right');
 
-        const main = this.body.querySelector('#main-img');
-        const mini = this.body.querySelectorAll('.miniaturas img');
-        const left = this.body.querySelector('.nav-left');
-        const right = this.body.querySelector('.nav-right');
+        let idx=0,isZoom=false,drag=false,startX=0,startY=0,tx=0,ty=0;
+        const update=i=>{ idx=(i+imgs.length)%imgs.length; main.src=imgs[idx]; mini.forEach((m,j)=>m.classList.toggle('selected',idx===j)); resetZoom(); };
+        mini.forEach((m,i)=>m.onclick=()=> abrirOverlay(imgs[i]));
+        left.onclick=()=>{ update(idx-1); clearInterval(this.autoPlayInterval); };
+        right.onclick=()=>{ update(idx+1); clearInterval(this.autoPlayInterval); };
 
-        const update = i => { idxImg = i; main.src = imgs[i] || 'https://via.placeholder.com/400x250'; mini.forEach((m,j)=>m.classList.toggle('selected', i===j)); resetZoom(); };
-        mini.forEach((m,i)=> m.onclick = () => update(i));
-        left.onclick = () => update((idxImg-1+imgs.length)%imgs.length);
-        right.onclick = () => update((idxImg+1)%imgs.length);
+        main.style.transition='transform .3s ease';
+        main.style.cursor='zoom-in';
 
-        // Zoom & pan
-        let isZoomed = false, startX = 0, startY = 0, translateX = 0, translateY = 0, dragging = false;
-        main.style.transition = 'transform 0.3s ease';
-        main.style.cursor = 'zoom-in';
-        const toggleZoom = (clientX, clientY) => {
-          isZoomed = !isZoomed;
-          main.classList.toggle('zoomed', isZoomed);
-          main.style.cursor = isZoomed ? 'move' : 'zoom-in';
-          if(isZoomed){
-            document.body.style.overflow = 'hidden';
-            const rect = main.getBoundingClientRect();
-            const originX = ((clientX - rect.left) / main.clientWidth) * 100;
-            const originY = ((clientY - rect.top) / main.clientHeight) * 100;
-            main.style.transformOrigin = `${originX}% ${originY}%`;
-            translateX = 0; translateY = 0;
-            main.style.transform = `scale(2) translate(0px,0px)`;
-          } else {
-            document.body.style.overflow = '';
-            main.style.transform = 'scale(1) translate(0px,0px)';
-            translateX = 0; translateY = 0;
-          }
+        const toggleZoom=(cx,cy)=>{
+          isZoom=!isZoom;
+          main.classList.toggle('zoomed',isZoom);
+          main.style.cursor=isZoom?'move':'zoom-in';
+          if(isZoom){ clearInterval(this.autoPlayInterval); document.body.style.overflow='hidden';
+            const rect=main.getBoundingClientRect();
+            main.style.transformOrigin=`${((cx-rect.left)/main.clientWidth)*100}% ${((cy-rect.top)/main.clientHeight)*100}%`;
+            tx=0;ty=0; main.style.transform=`scale(2) translate(0px,0px)`;
+          }else{ document.body.style.overflow=''; main.style.transform='scale(1) translate(0px,0px)'; tx=0;ty=0; iniciarAutoplay(); }
         };
-        const resetZoom = () => { isZoomed = false; main.classList.remove('zoomed'); main.style.cursor = 'zoom-in'; main.style.transform = 'scale(1) translate(0px,0px)'; translateX = 0; translateY = 0; document.body.style.overflow = ''; };
+        const resetZoom=()=>{ isZoom=false; main.classList.remove('zoomed'); main.style.cursor='zoom-in'; main.style.transform='scale(1) translate(0px,0px)'; tx=0;ty=0; document.body.style.overflow=''; };
+        main.addEventListener('click',e=>toggleZoom(e.clientX,e.clientY));
+        const limit=()=>{
+          if(!isZoom)return;
+          const r=main.getBoundingClientRect(),p=main.parentElement.getBoundingClientRect();
+          const mx=(r.width-p.width)/2,my=(r.height-p.height)/2;
+          tx=Math.min(Math.max(tx,-mx),mx);
+          ty=Math.min(Math.max(ty,-my),my);
+        };
+        main.addEventListener('mousedown',e=>{ if(isZoom){ drag=true; startX=e.clientX-tx; startY=e.clientY-ty; main.style.cursor='grabbing'; } });
+        window.addEventListener('mousemove',e=>{ if(drag){ tx=e.clientX-startX; ty=e.clientY-startY; limit(); main.style.transform=`scale(2) translate(${tx}px,${ty}px)`; } });
+        window.addEventListener('mouseup',e=>{ if(drag){ drag=false; main.style.cursor='move'; } });
+        main.addEventListener('touchstart',e=>{ if(e.touches.length===1 && isZoom){ startX=e.touches[0].clientX-tx; startY=e.touches[0].clientY-ty; } },{passive:false});
+        main.addEventListener('touchmove',e=>{ if(e.touches.length===1 && isZoom){ e.preventDefault(); tx=e.touches[0].clientX-startX; ty=e.touches[0].clientY-startY; limit(); main.style.transform=`scale(2) translate(${tx}px,${ty}px)`; } },{passive:false});
 
-        main.addEventListener('click', e => { toggleZoom(e.clientX, e.clientY); });
+        // swipe main
+        let tsX=0, teX=0;
+        main.addEventListener('touchstart',e=>{ if(!isZoom){ tsX=e.touches[0].clientX; clearInterval(this.autoPlayInterval); } },{passive:true});
+        main.addEventListener('touchmove',e=>{ if(!isZoom){ teX=e.touches[0].clientX; }},{passive:true});
+        main.addEventListener('touchend',()=>{ if(!isZoom){ const diff=tsX-teX; if(Math.abs(diff)>30) diff>0?update(idx+1):update(idx-1); iniciarAutoplay(); }});
 
-        const limitTranslate = () => {
-          if(!isZoomed) return;
-          const rect = main.getBoundingClientRect();
-          const parent = main.parentElement.getBoundingClientRect();
-          const maxX = (rect.width - parent.width)/2;
-          const maxY = (rect.height - parent.height)/2;
-          translateX = Math.min(Math.max(translateX, -maxX), maxX);
-          translateY = Math.min(Math.max(translateY, -maxY), maxY);
+        const iniciarAutoplay=()=>{ clearInterval(this.autoPlayInterval); if(imgs.length>1)this.autoPlayInterval=setInterval(()=>update(idx+1),4000); };
+        iniciarAutoplay();
+
+        const abrirOverlay=(src)=>{
+          clearInterval(this.autoPlayInterval);
+          const overlay=document.createElement('div'); overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:10000;';
+          const img=document.createElement('img'); img.src=src; img.style.maxWidth='90%'; img.style.maxHeight='90%'; img.style.cursor='zoom-in'; overlay.appendChild(img);
+          let zo=false,dx=0,dy=0,dragging=false,sx=0,sy=0;
+          img.onclick=()=>{ zo=!zo; img.style.transform=zo?'scale(2)':'scale(1)'; img.style.cursor=zo?'move':'zoom-in'; };
+          img.addEventListener('mousedown',e=>{ if(zo){ dragging=true; sx=e.clientX-dx; sy=e.clientY-dy; img.style.cursor='grabbing'; } });
+          window.addEventListener('mousemove',e=>{ if(dragging){ dx=e.clientX-sx; dy=e.clientY-sy; img.style.transform=`scale(2) translate(${dx}px,${dy}px)`; } });
+          window.addEventListener('mouseup',()=>{ if(dragging){ dragging=false; img.style.cursor='move'; } });
+          overlay.onclick=e=>{ if(e.target===overlay){ overlay.remove(); iniciarAutoplay(); } };
+          document.body.appendChild(overlay);
         };
 
-        main.addEventListener('mousedown', e => { if(isZoomed){ dragging = true; startX = e.clientX - translateX; startY = e.clientY - translateY; main.style.cursor = 'grabbing'; }});
-        window.addEventListener('mousemove', e => { if(dragging){ translateX = e.clientX - startX; translateY = e.clientY - startY; limitTranslate(); main.style.transform = `scale(2) translate(${translateX}px,${translateY}px)`; }});
-        window.addEventListener('mouseup', e => { if(dragging){ dragging = false; main.style.cursor = 'move'; }});
-
-        main.addEventListener('touchstart', e => { if(e.touches.length === 1 && isZoomed){ startX = e.touches[0].clientX - translateX; startY = e.touches[0].clientY - translateY; }} , { passive:false });
-        main.addEventListener('touchmove', e => { if(e.touches.length === 1 && isZoomed){ e.preventDefault(); translateX = e.touches[0].clientX - startX; translateY = e.touches[0].clientY - startY; limitTranslate(); main.style.transform = `scale(2) translate(${translateX}px,${translateY}px)`; }} , { passive:false });
-
-        // open modal
         this.modal.classList.add('show');
       }
-      fechar(){
-        this.modal.classList.remove('show');
-        // keep display none handled by CSS (display:block when .show exists). No extra timeout needed.
-        // But to ensure elements not stuck with overflow hidden
-        document.body.style.overflow = '';
-      }
+
+      fechar(){ this.modal.classList.remove('show'); document.body.style.overflow=''; clearInterval(this.autoPlayInterval); }
     }
 
-    /* ==================== LISTA ==================== */
     class ListaImoveis{
-      constructor(id, modal){ this.lista = document.getElementById(id); this.modal = modal; this.filteredData = []; }
-      render(dados, filtro = {}, tab = ""){
-        // dados: array to render (full or already filtered/sorted). We'll apply additional filtro/tab if provided.
-        const source = Array.isArray(dados) ? dados : [];
-        this.lista.innerHTML = '';
-        this.filteredData = source.filter(i => {
-          const p = Number(i.preco || 0);
-          if(tab && i.operacao !== tab) return false;
-          if(filtro.busca && !(`${i.titulo} ${i.descricao} ${i.bairro || ''} ${i.ref || ''}`.toLowerCase().includes(filtro.busca.toLowerCase()))) return false;
-          if(filtro.cidade && i.cidade !== filtro.cidade) return false;
-          if(filtro.tipo && i.tipo !== filtro.tipo) return false;
-          if(filtro.aceita_pet && i.aceita_pet !== filtro.aceita_pet) return false;
-          if(filtro.cond_incluso && i.cond_incluso !== filtro.cond_incluso) return false;
-          if(filtro.precoMin && p < Number(filtro.precoMin)) return false;
-          if(filtro.precoMax && p > Number(filtro.precoMax)) return false;
+      constructor(id, modal){ this.lista=document.getElementById(id); this.modal=modal; this.filteredData=[]; }
+      render(dados, filtro={}, tab=""){
+        const source=Array.isArray(dados)?dados:[];
+        this.lista.innerHTML='';
+        this.filteredData=source.filter(i=>{
+          const p=Number(i.preco||0);
+          if(tab && i.operacao!==tab) return false;
+          if(filtro.busca && !(`${i.titulo} ${i.descricao} ${i.bairro||''} ${i.ref||''}`.toLowerCase().includes(filtro.busca.toLowerCase()))) return false;
+          if(filtro.cidade && i.cidade!==filtro.cidade) return false;
+          if(filtro.tipo && i.tipo!==filtro.tipo) return false;
+          if(filtro.aceita_pet && i.aceita_pet!==filtro.aceita_pet) return false;
+          if(filtro.cond_incluso && i.cond_incluso!==filtro.cond_incluso) return false;
+          if(filtro.precoMin && p<Number(filtro.precoMin)) return false;
+          if(filtro.precoMax && p>Number(filtro.precoMax)) return false;
           return true;
         });
 
-        this.filteredData.forEach(i => {
-          const c = document.createElement('div'); c.className = 'card';
-          const imgs = (i.imagens||'').split(' ').filter(s => s);
-          c.innerHTML = `
+        this.filteredData.forEach(i=>{
+          const c=document.createElement('div'); c.className='card';
+          const imgs=(i.imagens||'').split(' ').filter(s=>s);
+          c.innerHTML=`
             <img src="${imgs[0]||'https://via.placeholder.com/400x250'}">
             <div class="card-body">
               <h3>${i.titulo||''}</h3>
@@ -274,13 +272,11 @@
               <button class="btn-detalhes">Detalhes</button>
             </div>
           `;
+          c.querySelector('.btn-detalhes').onclick=()=>this.modal.abrir(i);
 
-          c.querySelector('.btn-detalhes').onclick = () => this.modal.abrir(i);
-
-          // slideshow automático quando mais de uma imagem
-          if(imgs.length > 1){
-            let idx = 0;
-            setInterval(() => { idx = (idx+1) % imgs.length; const elImg = c.querySelector('img'); if(elImg) elImg.src = imgs[idx]; }, 3000);
+          if(imgs.length>1){
+            let idx=0;
+            setInterval(()=>{ idx=(idx+1)%imgs.length; const elImg=c.querySelector('img'); if(elImg) elImg.src=imgs[idx]; },3000);
           }
 
           this.lista.appendChild(c);
@@ -288,193 +284,24 @@
       }
     }
 
-    /* ==================== FILTROS ==================== */
-    class FiltroImoveis{
-  constructor(id,dados,lista){
-    this.c=document.getElementById(id);this.dados=dados;this.lista=lista;
-    const cidades=[...new Set(dados.map(i=>i.cidade))];
-    const tipos=[...new Set(dados.map(i=>i.tipo))];
-    this.c.innerHTML=`<input id="busca" placeholder="Título, descrição, bairro ou código">
-      <select id="filtroCidade"><option value="">Cidades</option>${cidades.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
-      <select id="filtroTipo"><option value="">Tipos de Imóveis</option>${tipos.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
-      <select id="filtroPet"><option value="">Aceita Pet?</option><option value="Sim">Sim</option><option value="Não">Não</option></select>
-      <select id="filtroCondo"><option value="">Condomínio Incluso?</option><option value="Sim">Sim</option><option value="Não">Não</option></select>
-      <input id="filtroPrecoMin" type="number" placeholder="Preço mínimo">
-      <input id="filtroPrecoMax" type="number" placeholder="Preço máximo">`;
-    const update=()=>{
-      const f={
-        busca:this.c.querySelector("#busca").value,
-        cidade:this.c.querySelector("#filtroCidade").value,
-        tipo:this.c.querySelector("#filtroTipo").value,
-        aceita_pet:this.c.querySelector("#filtroPet").value,
-        cond_incluso:this.c.querySelector("#filtroCondo").value,
-        precoMin:this.c.querySelector("#filtroPrecoMin").value,
-        precoMax:this.c.querySelector("#filtroPrecoMax").value
-      };
-      const tab=document.querySelector(".tab.active")?.dataset.tab||"";
-      this.lista.render(this.dados,f,tab);
-    }
-    ["busca","filtroCidade","filtroTipo","filtroPet","filtroCondo","filtroPrecoMin","filtroPrecoMax"].forEach(id=>{
-      const el=this.c.querySelector("#"+id);
-      el.tagName==="INPUT"?el.addEventListener("input",update):el.addEventListener("change",update);
-    });
-    update();
-  }
-}
-
-    /* ==================== TABS ==================== */
-    class TabsImoveis{
-      constructor(id, dados, lista){ this.c = document.getElementById(id); this.dados = dados; this.lista = lista; this.init(); }
-      init(){
-        const tabs = [...new Set(this.dados.map(i => i.operacao))]; tabs.unshift('Todos');
-        this.c.innerHTML = '';
-        tabs.forEach(tab => {
-          const t = document.createElement('span'); t.className = 'tab'; t.dataset.tab = (tab === 'Todos' ? '' : tab); t.textContent = tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase();
-          t.onclick = () => { document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); const f = {}; this.lista.render(this.dados, f, t.dataset.tab); };
-          this.c.appendChild(t);
-        });
-        this.c.querySelector('.tab').classList.add('active');
-      }
-    }
-
-    /* ==================== ORDENAÇÃO ==================== */
-    class OrdenacaoImoveis{
-      constructor(id, lista){ this.c = document.getElementById(id); this.lista = lista; this.init(); }
-      init(){
-        this.c.innerHTML = `
-          <select class="ordenacao-select" id="ordenar">
-            <option value="">Ordenar por</option>
-            <option value="preco_asc">Preço Crescente</option>
-            <option value="preco_desc">Preço Decrescente</option>
-            <option value="area_asc">Área Crescente</option>
-            <option value="area_desc">Área Decrescente</option>
-          </select>
-        `;
-        this.c.querySelector('#ordenar').addEventListener('change', e => {
-          const val = e.target.value;
-          const data = this.lista.filteredData.slice();
-          if(val === 'preco_asc') data.sort((a,b) => Number(a.preco) - Number(b.preco));
-          if(val === 'preco_desc') data.sort((a,b) => Number(b.preco) - Number(a.preco));
-          if(val === 'area_asc') data.sort((a,b) => Number(a.area) - Number(b.area));
-          if(val === 'area_desc') data.sort((a,b) => Number(b.area) - Number(a.area));
-          this.lista.render(data);
-        });
-      }
-    }
-
-    /* ==================== DESTAQUES (carrossel com swipe) ==================== */
-   class Destaques {
-  constructor(imoveis, palavrasChave = ['destaques', 'premium', 'top']) {
-    // Converte todas as palavras-chave para minúsculo
-    this.palavrasChave = palavrasChave.map(p => p.toLowerCase());
-
-    // Filtra imóveis que contêm pelo menos uma das palavras-chave na descrição
-    this.imoveis = imoveis.filter(i => {
-      if (!i.descricao) return false;
-      const desc = i.descricao.toLowerCase();
-      return this.palavrasChave.some(p => desc.includes(p));
-    });
-
-    if (this.imoveis.length === 0) return; // não renderiza se nenhum destaque
-    this.renderDestaques();
-  }
-
-  renderDestaques() {
-    const container = document.getElementById('destaques');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    // Cria os cards originais
-    this.cards = this.imoveis.map(imovel => {
-      const card = document.createElement('div');
-      card.className = 'destaque-card';
-      card.innerHTML = `
-        <img src="${(imovel.imagens||'').split(' ')[0]||'https://via.placeholder.com/200x120'}">
-        <p>${imovel.titulo} - R$ ${Number(imovel.preco).toLocaleString()}</p>
-      `;
-      container.appendChild(card);
-      return card;
-    });
-
-    // Clona os cards para efeito infinito
-    this.cards.forEach(card => container.appendChild(card.cloneNode(true)));
-
-    const modal = new ModalImovel('detalhesModal');
-    const allCards = container.querySelectorAll('.destaque-card');
-
-    // Clique abre modal do imóvel correto
-    allCards.forEach((card, idx) => {
-      card.onclick = () => modal.abrir(this.imoveis[idx % this.imoveis.length]);
-    });
-
-    const cardWidth = this.cards[0]?.offsetWidth + 12 || 172;
-    let scrollPos = 0;
-    const totalWidth = cardWidth * this.cards.length;
-
-    // Scroll automático infinito
-    const scrollStep = () => {
-      scrollPos += cardWidth;
-      if (scrollPos >= totalWidth / 2) scrollPos = 0; // reinicia ao chegar no clone
-      container.scrollTo({ left: scrollPos, behavior: 'smooth' });
-    };
-    this.interval = setInterval(scrollStep, 4000);
-
-    // Navegação com setas
-    const left = document.querySelector('.destaque-left');
-    const right = document.querySelector('.destaque-right');
-
-    if (left) left.onclick = () => {
-      scrollPos -= cardWidth;
-      if (scrollPos < 0) scrollPos = totalWidth / 2 - cardWidth;
-      container.scrollTo({ left: scrollPos, behavior: 'smooth' });
-    };
-    if (right) right.onclick = () => {
-      scrollPos += cardWidth;
-      if (scrollPos >= totalWidth / 2) scrollPos = 0;
-      container.scrollTo({ left: scrollPos, behavior: 'smooth' });
-    };
-
-    // Swipe touch
-    let startX = 0, isDragging = false;
-    container.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; });
-    container.addEventListener('touchmove', e => {
-      if (!isDragging) return;
-      const diff = startX - e.touches[0].clientX;
-      if (Math.abs(diff) > 30) {
-        scrollPos += diff > 0 ? cardWidth : -cardWidth;
-        if (scrollPos >= totalWidth / 2) scrollPos = 0;
-        if (scrollPos < 0) scrollPos = totalWidth / 2 - cardWidth;
-        container.scrollTo({ left: scrollPos, behavior: 'smooth' });
-        startX = e.touches[0].clientX;
-      }
-    });
-    container.addEventListener('touchend', () => { isDragging = false; });
-  }
-}
-
-    /* ==================== CARREGAR CSV (mantendo base de dados original) ==================== */
-    Papa.parse(csvUrl, { download:true, header:true, complete: res => {
-      // IMPORTANTE: manter a mesma lógica que você já usava — pulo da primeira linha (slice(1)) para manter compatibilidade
-      const allData = res.data.slice(1);
-      const dados = allData.map(i => {
-        i.ref = i.ref || '';
-        i.aceita_pet = (i.aceita_pet && ['sim','s','1'].includes(i.aceita_pet.trim().toLowerCase())) ? 'Sim' : 'Não';
-        i.cond_incluso = (i.cond_incluso && ['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase())) ? 'Sim' : 'Não';
-        i.garagem = i.garagem || '0'; i.titulo = i.titulo || ''; i.descricao = i.descricao || '';
-        i.tipo = i.tipo || ''; i.operacao = i.operacao || ''; i.cidade = i.cidade || ''; i.preco = i.preco || '0';
-        i.condominio = i.condominio || '0'; i.iptu = i.iptu || '0'; i.area = i.area || '0'; i.banheiros = i.banheiros || '0'; i.quartos = i.quartos || '0';
-        i.imagens = i.imagens || '';
-        return i;
+    Papa.parse(csvUrl, { download:true, header:true, complete: res=>{
+      const allData=res.data.slice(1);
+      const dados=allData.map(i=>{
+        i.ref=i.ref||''; i.aceita_pet=(i.aceita_pet && ['sim','s','1'].includes(i.aceita_pet.trim().toLowerCase()))?'Sim':'Não';
+        i.cond_incluso=(i.cond_incluso && ['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase()))?'Sim':'Não';
+        i.garagem=i.garagem||'0'; i.titulo=i.titulo||''; i.descricao=i.descricao||'';
+        i.tipo=i.tipo||''; i.operacao=i.operacao||''; i.cidade=i.cidade||''; i.preco=i.preco||'0';
+        i.condominio=i.condominio||'0'; i.iptu=i.iptu||'0'; i.area=i.area||'0'; i.banheiros=i.banheiros||'0'; i.quartos=i.quartos||'0';
+        i.imagens=i.imagens||''; return i;
       });
 
-      const modal = new ModalImovel('detalhesModal');
-      const lista = new ListaImoveis('lista', modal);
+      const modal=new ModalImovel('detalhesModal');
+      const lista=new ListaImoveis('lista', modal);
       new FiltroImoveis('filtros-container', dados, lista);
       new TabsImoveis('tabs-container', dados, lista);
       new OrdenacaoImoveis('ordenacao-container', lista);
       new Destaques(dados);
-    } });
+    }});
   </script>
 </body>
 </html>
