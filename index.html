@@ -151,7 +151,7 @@
           <p><b>Código:</b> ${imovel.ref||''}</p>
           <p><b>Preço:</b> R$ ${Number(imovel.preco).toLocaleString()} | <b>Cidade:</b> ${imovel.cidade} | <b>Bairro:</b> ${imovel.bairro||''} | <b>Tipo:</b> ${imovel.tipo||''} | <b>Operação:</b> ${imovel.operacao||''}</p>
           <p><b>Área Construída:</b> ${imovel.area||0}m² | <b>Área Total:</b> ${imovel.area_total||0}m² | <b>Quartos:</b> ${imovel.quartos||0} | <b>Banheiros:</b> ${imovel.banheiros||0} | <b>Garagem:</b> ${imovel.garagem||0}</p>
-          <p><b>Condomínio Incluso?:</b> ${imovel.condominio||''} | <b>Aceita Pet?:</b> ${imovel.pet||''}</p>
+          <p><b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} |<b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()} | <b>Condomínio Incluso?:</b> ${imovel.condominio||''} | <b>Aceita Pet?:</b> ${imovel.pet||''}</p>
           <p>${imovel.descricao||''}</p>
           <div style="position:relative; overflow:hidden;">
             <img id="main-img" src="${imgs[0]||'https://via.placeholder.com/400x250'}">
@@ -239,8 +239,8 @@
           if(filtro.busca && !(`${i.titulo} ${i.descricao} ${i.bairro || ''} ${i.ref || ''}`.toLowerCase().includes(filtro.busca.toLowerCase()))) return false;
           if(filtro.cidade && i.cidade !== filtro.cidade) return false;
           if(filtro.tipo && i.tipo !== filtro.tipo) return false;
-          if(filtro.pet && i.pet !== filtro.pet) return false;
-          if(filtro.condominio && i.condominio !== filtro.condominio) return false;
+          if(filtro.aceita_pet && i.aceita_pet !== filtro.aceita_pet) return false;
+          if(filtro.cond_incluso && i.cond_incluso !== filtro.cond_incluso) return false;
           if(filtro.precoMin && p < Number(filtro.precoMin)) return false;
           if(filtro.precoMax && p > Number(filtro.precoMax)) return false;
           return true;
@@ -290,8 +290,8 @@
         busca:this.c.querySelector("#busca").value,
         cidade:this.c.querySelector("#filtroCidade").value,
         tipo:this.c.querySelector("#filtroTipo").value,
-        pet:this.c.querySelector("#filtroPet").value,
-        condominio:this.c.querySelector("#filtroCondo").value,
+        aceita_pet:this.c.querySelector("#filtroPet").value,
+        cond_incluso:this.c.querySelector("#filtroCondo").value,
         precoMin:this.c.querySelector("#filtroPrecoMin").value,
         precoMax:this.c.querySelector("#filtroPrecoMax").value
       };
@@ -443,11 +443,11 @@
       const allData = res.data.slice(1);
       const dados = allData.map(i => {
         i.ref = i.ref || '';
-        i.pet = (i.pet && ['sim','s','1'].includes(i.pet.trim().toLowerCase())) ? 'Sim' : 'Não';
-        i.condominio = (i.cond_incluso && ['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase())) ? 'Sim' : 'Não';
+        i.aceita_pet = (i.aceita_pet && ['sim','s','1'].includes(i.aceita_pet.trim().toLowerCase())) ? 'Sim' : 'Não';
+        i.cond_incluso = (i.cond_incluso && ['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase())) ? 'Sim' : 'Não';
         i.garagem = i.garagem || '0'; i.titulo = i.titulo || ''; i.descricao = i.descricao || '';
-        i.tipo = i.tipo || ''; i.operacao = i.operacao || ''; i.cidade = i.cidade || '';
-        i.preco = i.preco || '0'; i.area = i.area || '0'; i.banheiros = i.banheiros || '0'; i.quartos = i.quartos || '0';
+        i.tipo = i.tipo || ''; i.operacao = i.operacao || ''; i.cidade = i.cidade || ''; i.preco = i.preco || '0';
+        i.condominio = i.condominio || '0'; i.iptu = i.iptu || '0'; i.area = i.area || '0'; i.banheiros = i.banheiros || '0'; i.quartos = i.quartos || '0';
         i.imagens = i.imagens || '';
         return i;
       });
