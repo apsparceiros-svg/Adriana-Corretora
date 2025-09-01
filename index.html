@@ -61,7 +61,18 @@
     .modal.show .modal-content { transform:translate(-50%,-50%) scale(1); opacity:1; }
     @media(min-width:900px){ .modal-content{ max-width:800px; max-height:95vh; padding:25px; } }
 
-    .modal-content img { width:100%; max-width:100%; max-height:320px; object-fit:cover; border-radius:8px; margin-bottom:10px; cursor:pointer; transition: transform .3s; }
+    /* imagens do modal ajustadas */
+    .modal-content img { 
+      width:100%; 
+      height:auto; 
+      max-height:320px; 
+      object-fit:contain; 
+      background:#f4f4f4;
+      border-radius:8px; 
+      margin-bottom:10px; 
+      cursor:pointer; 
+      transition: transform .3s; 
+    }
     .modal-content img.zoomed { transform: scale(2); cursor:move; }
     .modal-content img:hover:not(.zoomed) { transform: scale(1.03); }
     .modal-content .nav-arrow { position:absolute; top:50%; transform: translateY(-50%); font-size:22px; color:#fff; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:50%; cursor:pointer; user-select:none; z-index:5; }
@@ -80,10 +91,16 @@
     /* ==================== CARROSSEL ==================== */
     #destaques-container{ position:relative; margin-top:15px; }
     #destaques{ display:flex; gap:12px; overflow-x:auto; scroll-behavior:smooth; padding:0 40px; }
-    #destaques .destaque-card{ min-width:160px; flex:0 0 auto; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); cursor:pointer; transition:transform .2s, box-shadow .2s; }
+    #destaques .destaque-card{ min-width:160px; flex:0 0 auto; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); cursor:pointer; transition:transform .2s, box-shadow .2s; text-align:center; }
     #destaques .destaque-card:hover{ transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,0.2); }
-    #destaques .destaque-card img{ width:100%; height:100px; object-fit:cover; }
-    #destaques .destaque-card p{ padding:6px; margin:0; font-size:12px; font-weight:bold; color:#2d89ef; text-align:center; }
+    #destaques .destaque-card img{ 
+      width:100%; 
+      height:auto; 
+      max-height:120px; 
+      object-fit:contain; 
+      background:#f4f4f4;
+    }
+    #destaques .destaque-card p{ padding:6px; margin:0; font-size:12px; font-weight:bold; color:#2d89ef; }
     #destaques-container .destaque-left, #destaques-container .destaque-right{ position:absolute; top:50%; transform:translateY(-50%); font-size:28px; color:#fff; background:rgba(0,0,0,0.4); padding:6px 12px; border-radius:50%; cursor:pointer; z-index:10; }
     #destaques-container .destaque-left{ left:5px; } #destaques-container .destaque-right{ right:5px; }
 
@@ -98,7 +115,6 @@
   </style>
 </head>
 <body>
-
   <!-- Destaques -->
   <div id="destaques-container">
     <span class="nav-arrow destaque-left">&#10094;</span>
