@@ -72,7 +72,7 @@
     /* ==================== WHATSAPP FIXO ==================== */
     #whatsapp-flutuante {
       position: fixed;        
-      top: 20px;              /* abaixo dos filtros */
+      top: 20px;              
       right: 20px;
       width: 55px;
       height: 55px;
@@ -81,15 +81,8 @@
       animation: pulse 2s infinite;
       transition: transform 0.3s ease;
     }
-    #whatsapp-flutuante:hover {
-      transform: scale(1.1);
-    }
-    #whatsapp-flutuante img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
+    #whatsapp-flutuante:hover { transform: scale(1.1); }
+    #whatsapp-flutuante img { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
 
     /* ==================== RESPONSIVO ==================== */
     @media(max-width:480px){ .modal-content .nav-arrow, .card h3{ font-size:14px; } .card p, .card p.preco{ font-size:12px; } }
@@ -129,7 +122,7 @@
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
 
-    /* ==================== MODAL COMPLETO ==================== */
+    /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
       constructor(id){
         this.modal = document.getElementById(id);
@@ -143,6 +136,7 @@
       abrir(imovel){
         const imgs = (imovel.imagens||'').split(' ').filter(i => i);
         let idxImg = 0;
+
         this.body.innerHTML = `
           <h2>${imovel.titulo}</h2>
           <p><b>Código:</b> ${imovel.ref||''}</p>
@@ -163,57 +157,64 @@
         const mini = this.body.querySelectorAll('.miniaturas img');
         const left = this.body.querySelector('.nav-left');
         const right = this.body.querySelector('.nav-right');
-
         let isZoomed=false, startX=0, startY=0, translateX=0, translateY=0, dragging=false;
-        main.style.transition='transform 0.3s ease'; main.style.cursor='zoom-in';
-        const update = i => { idxImg = (i+imgs.length)%imgs.length; main.src = imgs[idxImg]; mini.forEach((m,j)=>m.classList.toggle('selected', idxImg===j)); resetZoom(); };
 
+        main.style.transition='transform 0.3s ease'; main.style.cursor='zoom-in';
+
+        const update = i => { idxImg=(i+imgs.length)%imgs.length; main.src=imgs[idxImg]; mini.forEach((m,j)=>m.classList.toggle('selected', idxImg===j)); resetZoom(); };
         const iniciarAutoplay = () => { clearInterval(this.autoPlayInterval); this.autoPlayInterval = setInterval(()=>update(idxImg+1),4000); };
         iniciarAutoplay();
 
         left.onclick = ()=>{ update(idxImg-1); clearInterval(this.autoPlayInterval); };
         right.onclick = ()=>{ update(idxImg+1); clearInterval(this.autoPlayInterval); };
 
-        const abrirImagemOriginal = (src) => {
+        const resetZoom=()=>{ isZoomed=false; main.classList.remove('zoomed'); main.style.cursor='zoom-in'; main.style.transform='scale(1) translate(0,0)'; translateX=0; translateY=0; document.body.style.overflow=''; };
+
+        const abrirOverlay = (initialIdx) => {
           clearInterval(this.autoPlayInterval);
+          let idx = initialIdx;
           const overlay = document.createElement('div');
-          overlay.style.position='fixed'; overlay.style.top=0; overlay.style.left=0; overlay.style.width='100%'; overlay.style.height='100%'; overlay.style.background='rgba(0,0,0,0.9)';
-          overlay.style.display='flex'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.zIndex=10000;
+          overlay.style.position='fixed'; overlay.style.top=0; overlay.style.left=0; overlay.style.width='100%'; overlay.style.height='100%'; overlay.style.background='rgba(0,0,0,0.9)'; overlay.style.display='flex'; overlay.style.flexDirection='column'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.zIndex=10000; overlay.style.padding='20px'; overlay.style.boxSizing='border-box'; overlay.style.overflow='auto';
 
-          const img=document.createElement('img'); img.src=src; img.style.maxWidth='90%'; img.style.maxHeight='90%'; img.style.cursor='zoom-in';
-          overlay.appendChild(img);
-          let zoom=false, tx=0, ty=0, sx=0, sy=0;
+          const imgContainer = document.createElement('div');
+          imgContainer.style.position='relative'; imgContainer.style.display='flex'; imgContainer.style.alignItems='center'; imgContainer.style.justifyContent='center';
+          overlay.appendChild(imgContainer);
 
-          img.onclick=()=>{ zoom=!zoom; img.style.transform=zoom?'scale(2)':'scale(1)'; img.style.cursor=zoom?'move':'zoom-in'; };
-          let dragging=false, startX2=0, startY2=0;
-          img.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX2=e.clientX-tx; startY2=e.clientY-ty; img.style.cursor='grabbing'; }}); 
-          window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX2; ty=e.clientY-startY2; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
-          window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) img.style.cursor='move'; });
+          const imgOverlay = document.createElement('img');
+          imgOverlay.src = imgs[idx];
+          imgOverlay.style.maxWidth='90%'; imgOverlay.style.maxHeight='70%'; imgOverlay.style.cursor='zoom-in'; imgOverlay.style.transition='transform 0.3s ease';
+          imgContainer.appendChild(imgOverlay);
 
-          img.addEventListener('touchstart', e=>{ if(e.touches.length===1 && zoom){ startX2=e.touches[0].clientX-tx; startY2=e.touches[0].clientY-ty; }},{passive:false});
-          img.addEventListener('touchmove', e=>{ if(e.touches.length===1 && zoom){ e.preventDefault(); tx=e.touches[0].clientX-startX2; ty=e.touches[0].clientY-startY2; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }},{passive:false});
+          const setaEsq = document.createElement('span');
+          setaEsq.innerHTML='&#10094;'; setaEsq.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
+          const setaDir = document.createElement('span');
+          setaDir.innerHTML='&#10095;'; setaDir.style.cssText='position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
+          imgContainer.appendChild(setaEsq); imgContainer.appendChild(setaDir);
 
-          overlay.onclick=()=>{ document.body.removeChild(overlay); if(!isZoomed) iniciarAutoplay(); };
+          const atualizarOverlay = (novoIdx)=>{ idx=(novoIdx+imgs.length)%imgs.length; imgOverlay.src=imgs[idx]; Array.from(miniContainer.children).forEach((m,i)=>m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'); resetZoomOverlay(); };
+          setaEsq.onclick = ()=>atualizarOverlay(idx-1); setaDir.onclick = ()=>atualizarOverlay(idx+1);
+
+          const miniContainer = document.createElement('div'); miniContainer.style.cssText='display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;';
+          imgs.forEach((src,i)=>{ const m=document.createElement('img'); m.src=src; m.style.width='50px'; m.style.height='50px'; m.style.objectFit='cover'; m.style.borderRadius='6px'; m.style.cursor='pointer'; m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'; m.onclick=()=>atualizarOverlay(i); miniContainer.appendChild(m); });
+          overlay.appendChild(miniContainer);
+
+          let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
+          const toggleZoomOverlay=()=>{ zoom=!zoom; imgOverlay.style.transform=zoom?`scale(2) translate(${tx}px,${ty}px)`:'scale(1)'; imgOverlay.style.cursor=zoom?'move':'zoom-in'; if(!zoom){ tx=0; ty=0; } };
+          imgOverlay.onclick=()=>{ if(!zoom){ toggleZoomOverlay(); } };
+          imgOverlay.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; imgOverlay.style.cursor='grabbing'; }});
+          window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; imgOverlay.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
+          window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) imgOverlay.style.cursor='move'; });
+
+          overlay.addEventListener('click', e=>{ if(e.target===overlay){ document.body.removeChild(overlay); iniciarAutoplay(); }});
+          window.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape' && document.body.contains(overlay)){ document.body.removeChild(overlay); iniciarAutoplay(); window.removeEventListener('keydown', escHandler); }});
+
           document.body.appendChild(overlay);
+          const resetZoomOverlay=()=>{ zoom=false; tx=0; ty=0; imgOverlay.style.transform='scale(1) translate(0,0)'; imgOverlay.style.cursor='zoom-in'; };
         };
 
-        mini.forEach((m,i)=> m.onclick = () => abrirImagemOriginal(imgs[i]));
+        mini.forEach((m,i)=> m.onclick = () => abrirOverlay(i));
 
-        const toggleZoom = (clientX, clientY)=>{
-          isZoomed=!isZoomed; main.classList.toggle('zoomed',isZoomed); main.style.cursor=isZoomed?'move':'zoom-in';
-          if(isZoomed){ document.body.style.overflow='hidden'; const rect=main.getBoundingClientRect(); const originX=((clientX-rect.left)/main.clientWidth)*100; const originY=((clientY-rect.top)/main.clientHeight)*100; main.style.transformOrigin=`${originX}% ${originY}%`; translateX=0; translateY=0; main.style.transform=`scale(2) translate(0px,0px)`; clearInterval(this.autoPlayInterval);}
-          else{ document.body.style.overflow=''; main.style.transform='scale(1) translate(0px,0px)'; translateX=0; translateY=0; iniciarAutoplay(); }
-        };
-        const resetZoom=()=>{ isZoomed=false; main.classList.remove('zoomed'); main.style.cursor='zoom-in'; main.style.transform='scale(1) translate(0px,0px)'; translateX=0; translateY=0; document.body.style.overflow=''; };
-
-        main.addEventListener('click', e=>{ toggleZoom(e.clientX,e.clientY); });
-
-        main.addEventListener('mousedown', e=>{ if(isZoomed){ dragging=true; startX=e.clientX-translateX; startY=e.clientY-translateY; main.style.cursor='grabbing'; }});
-        window.addEventListener('mousemove', e=>{ if(dragging){ translateX=e.clientX-startX; translateY=e.clientY-startY; main.style.transform=`scale(2) translate(${translateX}px,${translateY}px)`; }});
-        window.addEventListener('mouseup', ()=>{ if(dragging){ dragging=false; main.style.cursor='move'; }});
-
-        main.addEventListener('touchstart', e=>{ if(e.touches.length===1 && isZoomed){ startX=e.touches[0].clientX-translateX; startY=e.touches[0].clientY-translateY; }},{passive:false});
-        main.addEventListener('touchmove', e=>{ if(e.touches.length===1 && isZoomed){ e.preventDefault(); translateX=e.touches[0].clientX-startX; translateY=e.touches[0].clientY-startY; main.style.transform=`scale(2) translate(${translateX}px,${translateY}px)`; }},{passive:false});
+        main.addEventListener('click', e=>{ if(!isZoomed) abrirOverlay(idxImg); });
 
         this.modal.classList.add('show');
       }
@@ -234,7 +235,24 @@
 
     class Destaques { constructor(imoveis,palavrasChave=['destaques','premium','top']){ this.palavrasChave=palavrasChave.map(p=>p.toLowerCase()); this.imoveis=imoveis.filter(i=>i.descricao && this.palavrasChave.some(p=>i.descricao.toLowerCase().includes(p))); if(this.imoveis.length===0) return; this.renderDestaques(); } renderDestaques(){ const container=document.getElementById('destaques'); container.innerHTML=''; this.cards=this.imoveis.map(i=>{ const card=document.createElement('div'); card.className='destaque-card'; card.innerHTML=`<img src="${(i.imagens||'').split(' ')[0]||'https://via.placeholder.com/200x120'}"><p>${i.titulo} - R$ ${Number(i.preco).toLocaleString()}</p>`; container.appendChild(card); return card; }); this.cards.forEach(c=>container.appendChild(c.cloneNode(true))); const modal=new ModalImovel('detalhesModal'); container.querySelectorAll('.destaque-card').forEach((c,idx)=>c.onclick=()=>modal.abrir(this.imoveis[idx%this.imoveis.length])); const w=this.cards[0]?.offsetWidth+12||172; let pos=0; const total=w*this.cards.length; const step=()=>{ pos+=w; if(pos>=total/2) pos=0; container.scrollTo({left:pos,behavior:'smooth'}); }; setInterval(step,4000); document.querySelector('.destaque-left').onclick=()=>{ pos-=w; if(pos<0) pos=total/2-w; container.scrollTo({left:pos,behavior:'smooth'}); }; document.querySelector('.destaque-right').onclick=()=>{ pos+=w; if(pos>=total/2) pos=0; container.scrollTo({left:pos,behavior:'smooth'}); }; let startX=0,isDrag=false; container.addEventListener('touchstart',e=>{ startX=e.touches[0].clientX; isDrag=true; }); container.addEventListener('touchmove',e=>{ if(!isDrag) return; const diff=startX-e.touches[0].clientX; if(Math.abs(diff)>30){ pos+=diff>0?w:-w; if(pos>=total/2) pos=0; if(pos<0) pos=total/2-w; container.scrollTo({left:pos,behavior:'smooth'}); startX=e.touches[0].clientX; } }); container.addEventListener('touchend',()=>{ isDrag=false; }); } }
 
-    Papa.parse(csvUrl,{download:true,header:true,complete:res=>{ const allData=res.data.slice(1); const dados=allData.map(i=>{ i.ref=i.ref||''; i.aceita_pet=(i.aceita_pet&&['sim','s','1'].includes(i.aceita_pet.trim().toLowerCase()))?'Sim':'Não'; i.cond_incluso=(i.cond_incluso&&['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase()))?'Sim':'Não'; i.garagem=i.garagem||'0'; i.titulo=i.titulo||''; i.descricao=i.descricao||''; i.tipo=i.tipo||''; i.operacao=i.operacao||''; i.cidade=i.cidade||''; i.preco=i.preco||'0'; i.condominio=i.condominio||'0'; i.iptu=i.iptu||'0'; i.area=i.area||'0'; i.banheiros=i.banheiros||'0'; i.quartos=i.quartos||'0'; i.imagens=i.imagens||''; return i; }); const modal=new ModalImovel('detalhesModal'); const lista=new ListaImoveis('lista',modal); new FiltroImoveis('filtros-container',dados,lista); new TabsImoveis('tabs-container',dados,lista); new OrdenacaoImoveis('ordenacao-container',lista); new Destaques(dados); }});
+   Papa.parse(csvUrl,{download:true,header:true,complete:res=>{
+      const allData=res.data.slice(1);
+      const dados=allData.map(i=>{
+        i.ref=i.ref||''; 
+        i.aceita_pet=(i.aceita_pet&&['sim','s','1'].includes(i.aceita_pet.trim().toLowerCase()))?'Sim':'Não'; 
+        i.cond_incluso=(i.cond_incluso&&['sim','s','1'].includes(i.cond_incluso.trim().toLowerCase()))?'Sim':'Não'; 
+        i.garagem=i.garagem||'0'; i.titulo=i.titulo||''; i.descricao=i.descricao||''; i.tipo=i.tipo||''; i.operacao=i.operacao||''; i.cidade=i.cidade||''; 
+        i.preco=i.preco||'0'; i.condominio=i.condominio||'0'; i.iptu=i.iptu||'0'; i.area=i.area||'0'; i.banheiros=i.banheiros||'0'; i.quartos=i.quartos||'0'; 
+        i.imagens=i.imagens||''; 
+        return i; 
+      });
+      const modal=new ModalImovel('detalhesModal');
+      const lista=new ListaImoveis('lista',modal);
+      new FiltroImoveis('filtros-container',dados,lista);
+      new TabsImoveis('tabs-container',dados,lista);
+      new OrdenacaoImoveis('ordenacao-container',lista);
+      new Destaques(dados);
+    }});
   </script>
 </body>
 </html>
