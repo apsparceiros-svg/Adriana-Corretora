@@ -69,19 +69,27 @@
     #destaques-container .destaque-left, #destaques-container .destaque-right{ position:absolute; top:50%; transform:translateY(-50%); font-size:28px; color:#fff; background:rgba(0,0,0,0.4); padding:6px 12px; border-radius:50%; cursor:pointer; z-index:10; }
     #destaques-container .destaque-left{ left:5px; } #destaques-container .destaque-right{ right:5px; }
 
-    /* ==================== WHATSAPP ENTRE FILTROS E LISTA ==================== */
+    /* ==================== WHATSAPP FIXO ==================== */
     #whatsapp-flutuante {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 10px;
-      width: 50px;
-      height: 50px;
+      position: fixed;        
+      top: 80px;              /* abaixo dos filtros */
+      right: 20px;
+      width: 55px;
+      height: 55px;
       z-index: 1000;
       cursor: pointer;
       animation: pulse 2s infinite;
+      transition: transform 0.3s ease;
     }
-    #whatsapp-flutuante img{ width:100%; height:100%; border-radius:50%; }
+    #whatsapp-flutuante:hover {
+      transform: scale(1.1);
+    }
+    #whatsapp-flutuante img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
 
     /* ==================== RESPONSIVO ==================== */
     @media(max-width:480px){ .modal-content .nav-arrow, .card h3{ font-size:14px; } .card p, .card p.preco{ font-size:12px; } }
@@ -99,12 +107,6 @@
   <div id="imoveis-app">
     <div id="tabs-container"></div>
     <div id="filtros-container"></div>
-
-    <!-- WhatsApp flutuante agora aqui -->
-    <a id="whatsapp-flutuante" href="https://api.whatsapp.com/send?phone=5512992468636" target="_blank" aria-label="WhatsApp">
-      <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" />
-    </a>
-
     <div id="ordenacao-container"></div>
     <div id="lista"></div>
 
@@ -116,6 +118,11 @@
       </div>
     </div>
   </div>
+
+  <!-- WhatsApp fixo no topo direito -->
+  <a id="whatsapp-flutuante" href="https://api.whatsapp.com/send?phone=5512992468636" target="_blank" aria-label="WhatsApp">
+    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" />
+  </a>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
