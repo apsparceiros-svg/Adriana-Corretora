@@ -318,7 +318,7 @@
           overlay.appendChild(imgContainer);
 
           const imgOverlay = document.createElement('img');
-          imgOverlay.src = imgs[idx] || '';
+          imgOverlay.src = imgs[idx];
           imgOverlay.style.maxWidth='90%'; imgOverlay.style.maxHeight='70%'; imgOverlay.style.cursor='zoom-in'; imgOverlay.style.transition='transform 0.3s ease';
           imgContainer.appendChild(imgOverlay);
 
@@ -354,7 +354,6 @@
         main.addEventListener('click', e=>{ if(!isZoomed) abrirOverlay(idxImg); });
 
         this.modal.classList.add('show');
-        document.body.style.overflow='hidden';
       }
       fechar(){
         this.modal.classList.remove('show');
