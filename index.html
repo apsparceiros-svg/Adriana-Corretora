@@ -281,85 +281,84 @@
           <p><span class="info-item">🛏️</span> <b>Quartos:</b> ${imovel.quartos||0} <span style="margin-left:8px">🛁 <b>Banheiros:</b> ${imovel.banheiros||0}</span> <span style="margin-left:8px">🚗 <b>Garagem:</b> ${imovel.garagem||0}</span></p>
           <p><span class="info-item">🏛️</span> <b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} <span style="margin-left:8px">🏢 <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()}</span> <span style="margin-left:8px">📦 <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''}</span> <span style="margin-left:8px">🐾 <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</span></p>
           <p style="white-space:pre-wrap">${imovel.descricao||''}</p>
-          <div style="position:relative; overflow:hidden;">
-            <img id="main-img" src="${imgs[0]||'https://via.placeholder.com/800x450'}">
-            <span class="nav-arrow nav-left">&#10094;</span>
-            <span class="nav-arrow nav-right">&#10095;</span>
-          </div>
-          <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}">`).join('')}</div>
-          <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">💬 WhatsApp</a>
-        `;
+          <div style="position:relative;overflow:hidden;">
+        <img id="main-img" src="${imgs[0]||'https://via.placeholder.com/400x250'}" style="cursor:zoom-in;transition:transform .2s;">
+        <span class="nav-arrow nav-left" style="position:absolute;top:50%;left:10px;font-size:28px;cursor:pointer;">&#10094;</span>
+        <span class="nav-arrow nav-right" style="position:absolute;top:50%;right:10px;font-size:28px;cursor:pointer;">&#10095;</span>
+      </div>
+      <div class="miniaturas" style="margin-top:10px;">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}">`).join('')}</div>
+      <button id="btn-play" class="btn-detalhes">⏸️ Pausar</button>
+      <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Tenho%20interesse%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">💬 WhatsApp</a>
+    `;
 
-        const main = this.body.querySelector('#main-img');
-        const mini = this.body.querySelectorAll('.miniaturas img');
-        const left = this.body.querySelector('.nav-left');
-        const right = this.body.querySelector('.nav-right');
-        let isZoomed=false, startX=0, startY=0, translateX=0, translateY=0, dragging=false;
+    const main = this.body.querySelector('#main-img');
+    const left = this.body.querySelector('.nav-left');
+    const right = this.body.querySelector('.nav-right');
+    const mini = this.body.querySelectorAll('.miniaturas img');
+    const btnPlay = this.body.querySelector('#btn-play');
 
-        main.style.transition='transform 0.3s ease'; main.style.cursor='zoom-in';
+    const update = (idx) => {
+      if(idx<0) idx=imgs.length-1;
+      if(idx>=imgs.length) idx=0;
+      idxImg = idx;
+      main.src = imgs[idx];
+      mini.forEach(m=>m.classList.remove('selected'));
+      mini[idx].classList.add('selected');
+      resetZoom();
+    };
 
-        const update = i => { idxImg=(i+imgs.length)%imgs.length; main.src=imgs[idxImg]; mini.forEach((m,j)=>m.classList.toggle('selected', idxImg===j)); resetZoom(); };
-        const iniciarAutoplay = () => { clearInterval(this.autoPlayInterval); this.autoPlayInterval = setInterval(()=>update(idxImg+1),4000); };
-        iniciarAutoplay();
+    const iniciarAutoplay = () => {
+      clearInterval(this.autoplay);
+      this.autoplay = setInterval(()=>update(idxImg+1),5000);
+      btnPlay.textContent = "⏸️ Pausar";
+    };
+    const pausarAutoplay = () => {
+      clearInterval(this.autoplay);
+      this.autoplay = null;
+      btnPlay.textContent = "▶️ Continuar";
+    };
+    const resetZoom = () => {
+      isZoomed=false;
+      main.style.transform='scale(1) translate(0,0)';
+      main.style.cursor='zoom-in';
+      translateX=0;translateY=0;
+    };
 
-        left.onclick = ()=>{ update(idxImg-1); clearInterval(this.autoPlayInterval); };
-        right.onclick = ()=>{ update(idxImg+1); clearInterval(this.autoPlayInterval); };
+    // Eventos
+    left.onclick = e => { e.stopPropagation(); update(idxImg-1); iniciarAutoplay(); };
+    right.onclick = e => { e.stopPropagation(); update(idxImg+1); iniciarAutoplay(); };
+    mini.forEach((m,i)=>m.onclick=()=>{ update(i); iniciarAutoplay(); });
+    btnPlay.onclick = ()=>{ if(this.autoplay) pausarAutoplay(); else iniciarAutoplay(); };
 
-        const resetZoom=()=>{ isZoomed=false; main.classList.remove('zoomed'); main.style.cursor='zoom-in'; main.style.transform='scale(1) translate(0,0)'; translateX=0; translateY=0; document.body.style.overflow=''; };
+    // Zoom + arrastar
+    main.onclick = e => {
+      isZoomed=!isZoomed;
+      main.style.cursor=isZoomed?'move':'zoom-in';
+      if(!isZoomed) resetZoom(); else main.style.transform='scale(2)';
+    };
+    main.onmousedown = e => { if(!isZoomed) return; dragging=true; startX=e.clientX; startY=e.clientY; };
+    main.onmouseup = ()=>dragging=false;
+    main.onmouseleave=()=>dragging=false;
+    main.onmousemove = e => {
+      if(!dragging) return;
+      let dx=(e.clientX-startX)/2, dy=(e.clientY-startY)/2;
+      translateX+=dx; translateY+=dy;
+      main.style.transform=`scale(2) translate(${translateX}px,${translateY}px)`;
+      startX=e.clientX; startY=e.clientY;
+    };
 
-        const abrirOverlay = (initialIdx) => {
-          clearInterval(this.autoPlayInterval);
-          let idx = initialIdx;
-          const overlay = document.createElement('div');
-          overlay.style.position='fixed'; overlay.style.top=0; overlay.style.left=0; overlay.style.width='100%'; overlay.style.height='100%'; overlay.style.background='rgba(0,0,0,0.9)'; overlay.style.display='flex'; overlay.style.flexDirection='column'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.zIndex=10000; overlay.style.padding='20px'; overlay.style.boxSizing='border-box'; overlay.style.overflow='auto';
+    iniciarAutoplay();
+    this.modal.classList.add('show');
+    document.body.style.overflow='hidden';
+  }
 
-          const imgContainer = document.createElement('div');
-          imgContainer.style.position='relative'; imgContainer.style.display='flex'; imgContainer.style.alignItems='center'; imgContainer.style.justifyContent='center';
-          overlay.appendChild(imgContainer);
-
-          const imgOverlay = document.createElement('img');
-          imgOverlay.src = imgs[idx];
-          imgOverlay.style.maxWidth='90%'; imgOverlay.style.maxHeight='70%'; imgOverlay.style.cursor='zoom-in'; imgOverlay.style.transition='transform 0.3s ease';
-          imgContainer.appendChild(imgOverlay);
-
-          const setaEsq = document.createElement('span');
-          setaEsq.innerHTML='&#10094;'; setaEsq.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
-          const setaDir = document.createElement('span');
-          setaDir.innerHTML='&#10095;'; setaDir.style.cssText='position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
-          imgContainer.appendChild(setaEsq); imgContainer.appendChild(setaDir);
-
-          const atualizarOverlay = (novoIdx)=>{ idx=(novoIdx+imgs.length)%imgs.length; imgOverlay.src=imgs[idx]; Array.from(miniContainer.children).forEach((m,i)=>m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'); resetZoomOverlay(); };
-          setaEsq.onclick = ()=>atualizarOverlay(idx-1); setaDir.onclick = ()=>atualizarOverlay(idx+1);
-
-          const miniContainer = document.createElement('div'); miniContainer.style.cssText='display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;';
-          imgs.forEach((src,i)=>{ const m=document.createElement('img'); m.src=src; m.style.width='50px'; m.style.height='50px'; m.style.objectFit='cover'; m.style.borderRadius='6px'; m.style.cursor='pointer'; m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'; m.onclick=()=>atualizarOverlay(i); miniContainer.appendChild(m); });
-          overlay.appendChild(miniContainer);
-
-          let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
-          const toggleZoomOverlay=()=>{ zoom=!zoom; imgOverlay.style.transform=zoom?`scale(2) translate(${tx}px,${ty}px)`:'scale(1)'; imgOverlay.style.cursor=zoom?'move':'zoom-in'; if(!zoom){ tx=0; ty=0; } };
-          imgOverlay.onclick=()=>{ if(!zoom){ toggleZoomOverlay(); } };
-          imgOverlay.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; imgOverlay.style.cursor='grabbing'; }});
-          window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; imgOverlay.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
-          window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) imgOverlay.style.cursor='move'; });
-
-          overlay.addEventListener('click', e=>{ if(e.target===overlay){ document.body.removeChild(overlay); iniciarAutoplay(); }});
-          window.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape' && document.body.contains(overlay)){ document.body.removeChild(overlay); iniciarAutoplay(); window.removeEventListener('keydown', escHandler); }});
-
-          document.body.appendChild(overlay);
-          const resetZoomOverlay=()=>{ zoom=false; tx=0; ty=0; imgOverlay.style.transform='scale(1) translate(0,0)'; imgOverlay.style.cursor='zoom-in'; };
-        };
-
-        mini.forEach((m,i)=> m.onclick = () => abrirOverlay(i));
-
-        main.addEventListener('click', e=>{ if(!isZoomed) abrirOverlay(idxImg); });
-
-        this.modal.classList.add('show');
-      }
-      fechar(){
-        this.modal.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-    }
+  fechar(){
+    this.modal.classList.remove('show');
+    document.body.style.overflow='';
+    clearInterval(this.autoplay);
+    this.autoplay=null;
+  }
+}
 
     /* ==================== RESTO DO SITE: LISTA, FILTRO, TABS, ORDENACAO, DESTAQUES ==================== */
     class ListaImoveis{
