@@ -342,10 +342,10 @@
     const setaDir = document.createElement("span"); setaDir.innerHTML="&#10095;"; setaDir.style.cssText="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;z-index:5;";
     overlay.appendChild(setaEsq); overlay.appendChild(setaDir);
 
-    // Botão Play/Pause centralizado
+    // Botão Play/Pause centralizado abaixo da imagem
     const btnPlay = document.createElement("button");
     btnPlay.textContent = this.isPlaying?"Pause":"Play";
-    btnPlay.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:12px 20px;font-size:18px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:6px;cursor:pointer;z-index:5;";
+    btnPlay.style.cssText = "margin-top:10px;padding:10px 20px;font-size:16px;";
     btnPlay.onclick = ()=>{ 
       this.isPlaying = !this.isPlaying; 
       btnPlay.textContent = this.isPlaying?"Pause":"Play";
