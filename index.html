@@ -282,84 +282,123 @@
           <p><span class="info-item">🏛️</span> <b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} <span style="margin-left:8px">🏢 <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()}</span> <span style="margin-left:8px">📦 <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''}</span> <span style="margin-left:8px">🐾 <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</span></p>
           <p style="white-space:pre-wrap">${imovel.descricao||''}</p>
           <div style="position:relative; overflow:hidden;">
-            <img id="main-img" src="${imgs[0]||'https://via.placeholder.com/400x250'}">
-            <span class="nav-arrow nav-left">&#10094;</span>
-            <span class="nav-arrow nav-right">&#10095;</span>
-          </div>
-          <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}">`).join('')}</div>
+             <img id="main-img" src="${imgs[pos]}" style="width:100%;border-radius:8px;cursor:zoom-in;">
+        <span class="nav-arrow nav-left">&#10094;</span>
+        <span class="nav-arrow nav-right">&#10095;</span>
+        <button class="play-btn">${this.isPlaying ? "Pause" : "Play"}</button>
+      </div>
+      <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===pos?'selected':''}">`).join('')}</div>
           <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
         `;
 
-        const main = this.body.querySelector('#main-img');
-        const mini = this.body.querySelectorAll('.miniaturas img');
-        const left = this.body.querySelector('.nav-left');
-        const right = this.body.querySelector('.nav-right');
-        let isZoomed=false, startX=0, startY=0, translateX=0, translateY=0, dragging=false;
+    const main=body.querySelector("#main-img");
+    const left=body.querySelector(".nav-left");
+    const right=body.querySelector(".nav-right");
+    const mini=body.querySelectorAll(".miniaturas img");
+    const playBtn=body.querySelector(".play-btn");
 
-        main.style.transition='transform 0.3s ease'; main.style.cursor='zoom-in';
+    const atualizar=i=>{
+      pos=(i+imgs.length)%imgs.length;
+      main.src=imgs[pos];
+      mini.forEach((m,j)=>m.classList.toggle("selected", j===pos));
+    };
 
-        const update = i => { idxImg=(i+imgs.length)%imgs.length; main.src=imgs[idxImg]; mini.forEach((m,j)=>m.classList.toggle('selected', idxImg===j)); resetZoom(); };
-        const iniciarAutoplay = () => { clearInterval(this.autoPlayInterval); this.autoPlayInterval = setInterval(()=>update(idxImg+1),4000); };
-        iniciarAutoplay();
+    left.onclick=()=>{ atualizar(pos-1); this.resetAutoplay(()=>atualizar(pos+1)); };
+    right.onclick=()=>{ atualizar(pos+1); this.resetAutoplay(()=>atualizar(pos+1)); };
+    mini.forEach((m,i)=>m.onclick=()=>{ atualizar(i); this.resetAutoplay(()=>atualizar(pos+1)); });
 
-        left.onclick = ()=>{ update(idxImg-1); clearInterval(this.autoPlayInterval); };
-        right.onclick = ()=>{ update(idxImg+1); clearInterval(this.autoPlayInterval); };
+    main.onclick=()=>this.abrirOverlay(imgs,pos);
 
-        const resetZoom=()=>{ isZoomed=false; main.classList.remove('zoomed'); main.style.cursor='zoom-in'; main.style.transform='scale(1) translate(0,0)'; translateX=0; translateY=0; document.body.style.overflow=''; };
+    playBtn.onclick=()=>this.togglePlay(playBtn, ()=>atualizar(pos+1));
 
-        const abrirOverlay = (initialIdx) => {
-          clearInterval(this.autoPlayInterval);
-          let idx = initialIdx;
-          const overlay = document.createElement('div');
-          overlay.style.position='fixed'; overlay.style.top=0; overlay.style.left=0; overlay.style.width='100%'; overlay.style.height='100%'; overlay.style.background='rgba(0,0,0,0.9)'; overlay.style.display='flex'; overlay.style.flexDirection='column'; overlay.style.alignItems='center'; overlay.style.justifyContent='center'; overlay.style.zIndex=10000; overlay.style.padding='20px'; overlay.style.boxSizing='border-box'; overlay.style.overflow='auto';
+    this.modal.classList.add("show");
 
-          const imgContainer = document.createElement('div');
-          imgContainer.style.position='relative'; imgContainer.style.display='flex'; imgContainer.style.alignItems='center'; imgContainer.style.justifyContent='center';
-          overlay.appendChild(imgContainer);
-
-          const imgOverlay = document.createElement('img');
-          imgOverlay.src = imgs[idx];
-          imgOverlay.style.maxWidth='90%'; imgOverlay.style.maxHeight='70%'; imgOverlay.style.cursor='zoom-in'; imgOverlay.style.transition='transform 0.3s ease';
-          imgContainer.appendChild(imgOverlay);
-
-          const setaEsq = document.createElement('span');
-          setaEsq.innerHTML='&#10094;'; setaEsq.style.cssText='position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
-          const setaDir = document.createElement('span');
-          setaDir.innerHTML='&#10095;'; setaDir.style.cssText='position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;user-select:none;z-index:5;';
-          imgContainer.appendChild(setaEsq); imgContainer.appendChild(setaDir);
-
-          const atualizarOverlay = (novoIdx)=>{ idx=(novoIdx+imgs.length)%imgs.length; imgOverlay.src=imgs[idx]; Array.from(miniContainer.children).forEach((m,i)=>m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'); resetZoomOverlay(); };
-          setaEsq.onclick = ()=>atualizarOverlay(idx-1); setaDir.onclick = ()=>atualizarOverlay(idx+1);
-
-          const miniContainer = document.createElement('div'); miniContainer.style.cssText='display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;';
-          imgs.forEach((src,i)=>{ const m=document.createElement('img'); m.src=src; m.style.width='50px'; m.style.height='50px'; m.style.objectFit='cover'; m.style.borderRadius='6px'; m.style.cursor='pointer'; m.style.border=i===idx?'2px solid #2d89ef':'2px solid transparent'; m.onclick=()=>atualizarOverlay(i); miniContainer.appendChild(m); });
-          overlay.appendChild(miniContainer);
-
-          let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
-          const toggleZoomOverlay=()=>{ zoom=!zoom; imgOverlay.style.transform=zoom?`scale(2) translate(${tx}px,${ty}px)`:'scale(1)'; imgOverlay.style.cursor=zoom?'move':'zoom-in'; if(!zoom){ tx=0; ty=0; } };
-          imgOverlay.onclick=()=>{ if(!zoom){ toggleZoomOverlay(); } };
-          imgOverlay.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; imgOverlay.style.cursor='grabbing'; }});
-          window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; imgOverlay.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
-          window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) imgOverlay.style.cursor='move'; });
-
-          overlay.addEventListener('click', e=>{ if(e.target===overlay){ document.body.removeChild(overlay); iniciarAutoplay(); }});
-          window.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape' && document.body.contains(overlay)){ document.body.removeChild(overlay); iniciarAutoplay(); window.removeEventListener('keydown', escHandler); }});
-
-          document.body.appendChild(overlay);
-          const resetZoomOverlay=()=>{ zoom=false; tx=0; ty=0; imgOverlay.style.transform='scale(1) translate(0,0)'; imgOverlay.style.cursor='zoom-in'; };
-        };
-
-        mini.forEach((m,i)=> m.onclick = () => abrirOverlay(i));
-
-        main.addEventListener('click', e=>{ if(!isZoomed) abrirOverlay(idxImg); });
-
-        this.modal.classList.add('show');
-      }
-      fechar(){
-        this.modal.classList.remove('show');
-        document.body.style.overflow = '';
-      }
+    if(this.isPlaying){
+      this.resetAutoplay(()=>atualizar(pos+1));
     }
+  }
+         abrirOverlay(imgs, idx){
+    let pos=idx;
+    const overlay=document.createElement("div");
+    overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;";
+
+    const img=document.createElement("img");
+    img.src=imgs[pos];
+    img.style.cssText="max-width:90%;max-height:80%;cursor:zoom-in;transition:transform .3s ease;";
+    overlay.appendChild(img);
+
+    const setaEsq=document.createElement("span");
+    setaEsq.innerHTML="&#10094;";
+    setaEsq.className="nav-arrow nav-left";
+    const setaDir=document.createElement("span");
+    setaDir.innerHTML="&#10095;";
+    setaDir.className="nav-arrow nav-right";
+    overlay.appendChild(setaEsq); overlay.appendChild(setaDir);
+
+    const playBtn=document.createElement("button");
+    playBtn.className="play-btn";
+    playBtn.textContent=this.isPlaying ? "Pause" : "Play";
+    overlay.appendChild(playBtn);
+
+    const atualizar=i=>{ pos=(i+imgs.length)%imgs.length; img.src=imgs[pos]; resetZoom(); };
+
+    setaEsq.onclick=()=>{ atualizar(pos-1); this.resetAutoplay(()=>atualizar(pos+1)); };
+    setaDir.onclick=()=>{ atualizar(pos+1); this.resetAutoplay(()=>atualizar(pos+1)); };
+
+    playBtn.onclick=()=>this.togglePlay(playBtn, ()=>atualizar(pos+1));
+
+    // Miniaturas
+    const miniContainer=document.createElement("div");
+    miniContainer.className="miniaturas";
+    imgs.forEach((s,i)=>{
+      const m=document.createElement("img");
+      m.src=s;
+      if(i===pos) m.classList.add("selected");
+      m.onclick=()=>{ atualizar(i); [...miniContainer.children].forEach(x=>x.classList.remove("selected")); m.classList.add("selected"); this.resetAutoplay(()=>atualizar(pos+1)); };
+      miniContainer.appendChild(m);
+    });
+    overlay.appendChild(miniContainer);
+
+    // Zoom
+    let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
+    const resetZoom=()=>{ zoom=false; tx=0; ty=0; img.style.transform="scale(1) translate(0,0)"; img.style.cursor="zoom-in"; };
+    img.onclick=()=>{ if(!zoom){ zoom=true; img.style.transform=`scale(2) translate(0,0)`; img.style.cursor="move"; } else resetZoom(); };
+    img.addEventListener("mousedown", e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; img.style.cursor="grabbing"; }});
+    window.addEventListener("mousemove", e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
+    window.addEventListener("mouseup", ()=>{ dragging=false; if(zoom) img.style.cursor="move"; });
+
+    overlay.onclick=e=>{ if(e.target===overlay) document.body.removeChild(overlay); };
+    window.addEventListener("keydown", function escHandler(e){ if(e.key==="Escape" && document.body.contains(overlay)){ document.body.removeChild(overlay); window.removeEventListener("keydown", escHandler); }});
+
+    document.body.appendChild(overlay);
+
+    if(this.isPlaying){
+      this.resetAutoplay(()=>atualizar(pos+1));
+    }
+  }
+
+  resetAutoplay(callback){
+    if(this.timer) clearInterval(this.timer);
+    if(this.isPlaying){
+      this.timer=setInterval(callback, this.config.delay);
+    }
+  }
+
+  togglePlay(btn, callback){
+    this.isPlaying = !this.isPlaying;
+    btn.textContent = this.isPlaying ? "Pause" : "Play";
+    if(this.isPlaying){
+      this.resetAutoplay(callback);
+    } else {
+      if(this.timer) clearInterval(this.timer);
+    }
+  }
+
+  fechar(){
+    this.modal.classList.remove("show");
+    if(this.timer) clearInterval(this.timer);
+  }
+}
 
     /* ==================== RESTO DO SITE: LISTA, FILTRO, TABS, ORDENACAO, DESTAQUES ==================== */
     class ListaImoveis{
