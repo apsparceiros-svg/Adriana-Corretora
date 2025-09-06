@@ -259,18 +259,22 @@
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
-      constructor(id){
-        this.modal = document.getElementById(id);
-        this.body = this.modal.querySelector('#modal-body');
-        this.close = this.modal.querySelector('.close');
-        this.autoPlayInterval = null;
-        this.close.onclick = () => this.fechar();
-        window.addEventListener('keydown', e => { if(e.key === 'Escape') this.fechar(); });
-        window.onclick = e => { if(e.target == this.modal) this.fechar(); };
-      }
-      abrir(imovel){
-        const imgs = (imovel.imagens||'').split(' ').filter(i => i);
-        let idxImg = 0;
+    constructor(id) {
+    this.modal = document.getElementById(id);
+    this.body = this.modal.querySelector('#modal-body');
+    this.close = this.modal.querySelector('.close');
+    this.timer = null;
+    this.isPlaying = true;
+
+    this.close.onclick = () => this.fechar();
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') this.fechar(); });
+    window.addEventListener('click', e => { if (e.target === this.modal) this.fechar(); });
+  }
+
+  abrir(imovel, config = { autoplay: true, delay: 3000 }) {
+    const imgs = (imovel.imagens || '').split(' ').filter(i => i);
+    let idx = 0;
+    this.isPlaying = config.autoplay;
 
         this.body.innerHTML = `
           <h2>🏠 ${imovel.titulo}</h2>
@@ -282,120 +286,116 @@
           <p><span class="info-item">🏛️</span> <b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} <span style="margin-left:8px">🏢 <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()}</span> <span style="margin-left:8px">📦 <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''}</span> <span style="margin-left:8px">🐾 <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</span></p>
           <p style="white-space:pre-wrap">${imovel.descricao||''}</p>
           <div style="position:relative; overflow:hidden;">
-             <img id="main-img" src="${imgs[pos]}" style="width:100%;border-radius:8px;cursor:zoom-in;">
+        <img id="main-img" src="${imgs[0] || 'https://via.placeholder.com/400x250'}" style="cursor:zoom-in;">
         <span class="nav-arrow nav-left">&#10094;</span>
         <span class="nav-arrow nav-right">&#10095;</span>
         <button class="play-btn">${this.isPlaying ? "Pause" : "Play"}</button>
       </div>
-      <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===pos?'selected':''}">`).join('')}</div>
-          <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
-        `;
+      <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}">`).join('')}</div>
+    `;
 
-    const main=body.querySelector("#main-img");
-    const left=body.querySelector(".nav-left");
-    const right=body.querySelector(".nav-right");
-    const mini=body.querySelectorAll(".miniaturas img");
-    const playBtn=body.querySelector(".play-btn");
+    const main = this.body.querySelector('#main-img');
+    const left = this.body.querySelector('.nav-left');
+    const right = this.body.querySelector('.nav-right');
+    const mini = this.body.querySelectorAll('.miniaturas img');
+    const playBtn = this.body.querySelector('.play-btn');
 
-    const atualizar=i=>{
-      pos=(i+imgs.length)%imgs.length;
-      main.src=imgs[pos];
-      mini.forEach((m,j)=>m.classList.toggle("selected", j===pos));
+    // Função para atualizar a imagem principal e miniaturas
+    const atualizar = i => {
+      idx = (i + imgs.length) % imgs.length;
+      main.src = imgs[idx];
+      mini.forEach((m,j) => m.classList.toggle('selected', j === idx));
+      resetZoom();
     };
 
-    left.onclick=()=>{ atualizar(pos-1); this.resetAutoplay(()=>atualizar(pos+1)); };
-    right.onclick=()=>{ atualizar(pos+1); this.resetAutoplay(()=>atualizar(pos+1)); };
-    mini.forEach((m,i)=>m.onclick=()=>{ atualizar(i); this.resetAutoplay(()=>atualizar(pos+1)); });
+    // Autoplay
+    const iniciarAutoplay = () => {
+      if (this.timer) clearInterval(this.timer);
+      if (this.isPlaying) this.timer = setInterval(() => atualizar(idx+1), config.delay);
+    };
+    iniciarAutoplay();
 
-    main.onclick=()=>this.abrirOverlay(imgs,pos);
+    // Controle de navegação
+    left.onclick = () => { atualizar(idx-1); this.resetAutoplay(() => atualizar(idx+1), config.delay); };
+    right.onclick = () => { atualizar(idx+1); this.resetAutoplay(() => atualizar(idx+1), config.delay); };
+    mini.forEach((m,i) => m.onclick = () => { atualizar(i); this.resetAutoplay(() => atualizar(idx+1), config.delay); });
 
-    playBtn.onclick=()=>this.togglePlay(playBtn, ()=>atualizar(pos+1));
+    // Play / Pause
+    playBtn.onclick = () => {
+      this.isPlaying = !this.isPlaying;
+      playBtn.textContent = this.isPlaying ? "Pause" : "Play";
+      if (this.isPlaying) iniciarAutoplay();
+      else if (this.timer) clearInterval(this.timer);
+    };
 
-    this.modal.classList.add("show");
+    // Zoom
+    let zoom = false, tx = 0, ty = 0, dragging = false, startX = 0, startY = 0;
+    const resetZoom = () => { zoom = false; main.style.transform = 'scale(1) translate(0,0)'; main.style.cursor = 'zoom-in'; tx=ty=0; };
+    main.onclick = () => { zoom = !zoom; main.style.transform = zoom ? `scale(2) translate(${tx}px,${ty}px)` : 'scale(1) translate(0,0)'; main.style.cursor = zoom ? 'move' : 'zoom-in'; };
 
-    if(this.isPlaying){
-      this.resetAutoplay(()=>atualizar(pos+1));
-    }
+    main.addEventListener('mousedown', e => { if (zoom) { dragging = true; startX = e.clientX - tx; startY = e.clientY - ty; main.style.cursor='grabbing'; }});
+    window.addEventListener('mousemove', e => { if (dragging) { tx = e.clientX - startX; ty = e.clientY - startY; main.style.transform = `scale(2) translate(${tx}px,${ty}px)`; }});
+    window.addEventListener('mouseup', () => { dragging = false; if(zoom) main.style.cursor='move'; });
+
+    // Overlay (imagem em tela cheia)
+    main.addEventListener('dblclick', () => this.abrirOverlay(imgs, idx, config));
+    this.modal.classList.add('show');
   }
-         abrirOverlay(imgs, idx){
-    let pos=idx;
-    const overlay=document.createElement("div");
-    overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;";
 
-    const img=document.createElement("img");
-    img.src=imgs[pos];
-    img.style.cssText="max-width:90%;max-height:80%;cursor:zoom-in;transition:transform .3s ease;";
+  abrirOverlay(imgs, idx, config) {
+    let pos = idx;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed; inset:0; background:rgba(0,0,0,0.95);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10000; padding:20px; box-sizing:border-box; overflow:auto;
+    `;
+    document.body.appendChild(overlay);
+
+    const img = document.createElement('img');
+    img.src = imgs[pos];
+    img.style.cssText = 'max-width:90%; max-height:80%; cursor:zoom-in; transition: transform .3s ease;';
     overlay.appendChild(img);
 
-    const setaEsq=document.createElement("span");
-    setaEsq.innerHTML="&#10094;";
-    setaEsq.className="nav-arrow nav-left";
-    const setaDir=document.createElement("span");
-    setaDir.innerHTML="&#10095;";
-    setaDir.className="nav-arrow nav-right";
+    const setaEsq = document.createElement('span');
+    setaEsq.innerHTML = '&#10094;';
+    setaEsq.style.cssText = 'position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:36px; color:#fff; cursor:pointer; z-index:5;';
+    const setaDir = document.createElement('span');
+    setaDir.innerHTML = '&#10095;';
+    setaDir.style.cssText = 'position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:36px; color:#fff; cursor:pointer; z-index:5;';
     overlay.appendChild(setaEsq); overlay.appendChild(setaDir);
 
-    const playBtn=document.createElement("button");
-    playBtn.className="play-btn";
-    playBtn.textContent=this.isPlaying ? "Pause" : "Play";
-    overlay.appendChild(playBtn);
-
-    const atualizar=i=>{ pos=(i+imgs.length)%imgs.length; img.src=imgs[pos]; resetZoom(); };
-
-    setaEsq.onclick=()=>{ atualizar(pos-1); this.resetAutoplay(()=>atualizar(pos+1)); };
-    setaDir.onclick=()=>{ atualizar(pos+1); this.resetAutoplay(()=>atualizar(pos+1)); };
-
-    playBtn.onclick=()=>this.togglePlay(playBtn, ()=>atualizar(pos+1));
-
-    // Miniaturas
-    const miniContainer=document.createElement("div");
-    miniContainer.className="miniaturas";
-    imgs.forEach((s,i)=>{
-      const m=document.createElement("img");
-      m.src=s;
-      if(i===pos) m.classList.add("selected");
-      m.onclick=()=>{ atualizar(i); [...miniContainer.children].forEach(x=>x.classList.remove("selected")); m.classList.add("selected"); this.resetAutoplay(()=>atualizar(pos+1)); };
+    const miniContainer = document.createElement('div');
+    miniContainer.style.cssText = 'display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;';
+    imgs.forEach((s,i) => {
+      const m = document.createElement('img');
+      m.src = s;
+      m.style.cssText = `width:50px; height:50px; object-fit:cover; border-radius:6px; cursor:pointer; border:${i===pos?'2px solid #2d89ef':'2px solid transparent'};`;
+      m.onclick = () => { pos = i; img.src = imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
       miniContainer.appendChild(m);
     });
     overlay.appendChild(miniContainer);
 
-    // Zoom
     let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
-    const resetZoom=()=>{ zoom=false; tx=0; ty=0; img.style.transform="scale(1) translate(0,0)"; img.style.cursor="zoom-in"; };
-    img.onclick=()=>{ if(!zoom){ zoom=true; img.style.transform=`scale(2) translate(0,0)`; img.style.cursor="move"; } else resetZoom(); };
-    img.addEventListener("mousedown", e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; img.style.cursor="grabbing"; }});
-    window.addEventListener("mousemove", e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
-    window.addEventListener("mouseup", ()=>{ dragging=false; if(zoom) img.style.cursor="move"; });
+    const resetZoom=()=>{ zoom=false; img.style.transform='scale(1) translate(0,0)'; img.style.cursor='zoom-in'; tx=ty=0; };
+    img.onclick = () => { zoom = !zoom; img.style.transform = zoom ? `scale(2) translate(${tx}px,${ty}px)` : 'scale(1) translate(0,0)'; img.style.cursor = zoom ? 'move' : 'zoom-in'; };
+    img.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; img.style.cursor='grabbing'; }});
+    window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
+    window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) img.style.cursor='move'; });
 
-    overlay.onclick=e=>{ if(e.target===overlay) document.body.removeChild(overlay); };
-    window.addEventListener("keydown", function escHandler(e){ if(e.key==="Escape" && document.body.contains(overlay)){ document.body.removeChild(overlay); window.removeEventListener("keydown", escHandler); }});
+    setaEsq.onclick = ()=>{ pos=(pos-1+imgs.length)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
+    setaDir.onclick = ()=>{ pos=(pos+1)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
 
-    document.body.appendChild(overlay);
-
-    if(this.isPlaying){
-      this.resetAutoplay(()=>atualizar(pos+1));
-    }
+    overlay.onclick = e => { if(e.target===overlay){ document.body.removeChild(overlay); } };
+    window.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape' && document.body.contains(overlay)){ document.body.removeChild(overlay); window.removeEventListener('keydown', escHandler); }});
   }
 
-  resetAutoplay(callback){
-    if(this.timer) clearInterval(this.timer);
-    if(this.isPlaying){
-      this.timer=setInterval(callback, this.config.delay);
-    }
+  resetAutoplay(callback, delay) {
+    if (this.timer) clearInterval(this.timer);
+    if (this.isPlaying) this.timer = setInterval(callback, delay);
   }
 
-  togglePlay(btn, callback){
-    this.isPlaying = !this.isPlaying;
-    btn.textContent = this.isPlaying ? "Pause" : "Play";
-    if(this.isPlaying){
-      this.resetAutoplay(callback);
-    } else {
-      if(this.timer) clearInterval(this.timer);
-    }
-  }
-
-  fechar(){
-    this.modal.classList.remove("show");
+  fechar() {
+    this.modal.classList.remove('show');
     if(this.timer) clearInterval(this.timer);
   }
 }
