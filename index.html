@@ -342,10 +342,14 @@
     const setaDir = document.createElement("span"); setaDir.innerHTML="&#10095;"; setaDir.style.cssText="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:36px;color:#fff;cursor:pointer;z-index:5;";
     overlay.appendChild(setaEsq); overlay.appendChild(setaDir);
 
-    // Botão Play/Pause centralizado abaixo da imagem
+    // Botão Play/Pause centralizado abaixo da imagem (transparente)
     const btnPlay = document.createElement("button");
     btnPlay.textContent = this.isPlaying?"Pause":"Play";
-    btnPlay.style.cssText = "margin-top:10px;padding:10px 20px;font-size:16px;";
+    btnPlay.style.cssText = `
+      margin-top:10px; padding:10px 20px; font-size:16px;
+      background: rgba(0,0,0,0.4); color:#fff; border:none; border-radius:6px;
+      cursor:pointer;
+    `;
     btnPlay.onclick = ()=>{ 
       this.isPlaying = !this.isPlaying; 
       btnPlay.textContent = this.isPlaying?"Pause":"Play";
@@ -369,9 +373,9 @@
     let zoom=false, tx=0, ty=0, dragging=false, startX=0, startY=0;
     const resetZoom = ()=>{ zoom=false; tx=0; ty=0; img.style.transform="scale(1) translate(0,0)"; img.style.cursor="zoom-in"; };
     img.onclick = ()=>{ zoom=!zoom; img.style.transform=zoom?`scale(2) translate(${tx}px,${ty}px)`:"scale(1) translate(0,0)"; img.style.cursor=zoom?"move":"zoom-in"; };
-    img.addEventListener("mousedown", e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; img.style.cursor="grabbing"; }});
-    window.addEventListener("mousemove", e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
-    window.addEventListener("mouseup", ()=>{ dragging=false; if(zoom) img.style.cursor="move"; });
+    img.addEventListener('mousedown', e=>{ if(zoom){ dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; img.style.cursor="grabbing"; }});
+    window.addEventListener('mousemove', e=>{ if(dragging){ tx=e.clientX-startX; ty=e.clientY-startY; img.style.transform=`scale(2) translate(${tx}px,${ty}px)`; }});
+    window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) img.style.cursor='move'; });
 
     setaEsq.onclick = ()=>{ pos=(pos-1+imgs.length)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
     setaDir.onclick = ()=>{ pos=(pos+1)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
@@ -380,7 +384,7 @@
     autoplayOverlay();
 
     overlay.onclick = e=>{ if(e.target===overlay){ clearInterval(this.overlayTimer); document.body.removeChild(overlay); } };
-    window.addEventListener("keydown", function escHandler(e){ if(e.key==="Escape" && document.body.contains(overlay)){ clearInterval(this.overlayTimer); document.body.removeChild(overlay); window.removeEventListener("keydown", escHandler); }});
+    window.addEventListener("keydown", function escHandler(e){ if(e.key==="Escape" && document.body.contains(overlay)){ clearInterval(this.overlayTimer); document.body.removeChild(overlay); window.removeEventListener('keydown', escHandler); }});
   }
 
   resetAutoplay(callback){
