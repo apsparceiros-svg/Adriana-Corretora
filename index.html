@@ -275,6 +275,7 @@
   abrir(imovel) {
     const imgs = (imovel.imagens || '').split(' ').filter(i => i);
     if (!imgs.length) imgs.push('https://via.placeholder.com/400x250');
+
     this.body.innerHTML = this.templateImovel(imovel, imgs);
 
     this.mainImg = this.body.querySelector('#main-img');
@@ -305,9 +306,11 @@
         <span class="nav-arrow nav-right">&#10095;</span>
         <button class="play-btn">${this.isPlaying ? "Pause" : "Play"}</button>
       </div>
-      <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}" style="cursor:pointer; width:50px; height:50px; object-fit:cover; border-radius:6px;">`).join('')}</div>
-      <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
-      `;
+      <div class="miniaturas" style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
+        ${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}" style="cursor:pointer; width:50px; height:50px; object-fit:cover; border-radius:6px;">`).join('')}
+      </div>
+      a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
+        `;
   }
 
   setupSlideshow(mainImg, miniImgs, left, right, playBtn, imgs) {
@@ -336,7 +339,7 @@
 
     if(this.isPlaying) this.resetAutoplay(()=>atualizar(this.idx+1));
 
-    // Zoom
+    // Zoom e arraste
     this.zoom=false; this.tx=0; this.ty=0; this.dragging=false; this.startX=0; this.startY=0;
     mainImg.onclick = () => {
       this.zoom = !this.zoom;
@@ -369,20 +372,18 @@
     `;
     document.body.appendChild(overlay);
 
-    // Botão fechar
     const btnClose = document.createElement('span');
     btnClose.innerHTML = '&times;';
     btnClose.style.cssText='position:absolute; top:20px; right:20px; font-size:36px; color:#fff; cursor:pointer; z-index:5;';
     btnClose.onclick = () => { clearInterval(this.overlayTimer); document.body.removeChild(overlay); };
     overlay.appendChild(btnClose);
 
-    // Imagem principal
     const img = document.createElement('img');
     img.src = imgs[pos];
     img.style.cssText='max-width:90%; max-height:80%; cursor:zoom-in; transition: transform .3s ease;';
     overlay.appendChild(img);
 
-    // Setas de navegação
+    // Setas
     const setaEsq = document.createElement('span');
     setaEsq.innerHTML='&#10094;';
     setaEsq.style.cssText='position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:36px; color:#fff; cursor:pointer; z-index:5;';
@@ -434,7 +435,7 @@
     });
     window.addEventListener('mouseup', ()=>{ dragging=false; if(zoom) img.style.cursor='move'; });
 
-    // Navegação das setas
+    // Navegação setas
     setaEsq.onclick = ()=>{ pos=(pos-1+imgs.length)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
     setaDir.onclick = ()=>{ pos=(pos+1)%imgs.length; img.src=imgs[pos]; Array.from(miniContainer.children).forEach((x,j)=>x.style.border=j===pos?'2px solid #2d89ef':'2px solid transparent'); resetZoom(); };
 
@@ -453,7 +454,7 @@
 
     overlay.onclick = e => { if(e.target===overlay){ clearInterval(this.overlayTimer); document.body.removeChild(overlay); } };
     window.addEventListener('keydown', function escHandler(e){ if(e.key==='Escape' && document.body.contains(overlay)){ clearInterval(this.overlayTimer); document.body.removeChild(overlay); window.removeEventListener('keydown', escHandler); }});
-}
+  }
 
   resetAutoplay(callback){
     if(this.timer) clearInterval(this.timer);
