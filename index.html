@@ -301,7 +301,21 @@
       <div class="miniaturas" style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
         ${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}" style="cursor:pointer;width:50px;height:50px;object-fit:cover;border-radius:6px;">`).join('')}
       </div>
-      <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
+      <a class="btn-whatsapp" 
+   href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" 
+   target="_blank" 
+   style="
+      padding:6px 12px;       /* reduz altura e largura */
+      font-size:14px;          /* tamanho do texto menor */
+      border-radius:6px;       /* bordas arredondadas */
+      background:#25D366;      /* verde WhatsApp */
+      color:#fff; 
+      text-decoration:none;
+      display:inline-block;
+      margin-top:10px;
+   ">
+   WhatsApp
+   </a>
         `;
 
     const main = this.body.querySelector("#main-img");
