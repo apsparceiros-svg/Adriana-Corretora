@@ -286,13 +286,21 @@
           <p><span class="info-item">🛏️</span> <b>Quartos:</b> ${imovel.quartos||0} <span style="margin-left:8px">🛁 <b>Banheiros:</b> ${imovel.banheiros||0}</span> <span style="margin-left:8px">🚗 <b>Garagem:</b> ${imovel.garagem||0}</span></p>
           <p><span class="info-item">🏛️</span> <b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} <span style="margin-left:8px">🏢 <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()}</span> <span style="margin-left:8px">📦 <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''}</span> <span style="margin-left:8px">🐾 <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</span></p>
           <p style="white-space:pre-wrap">${imovel.descricao||''}</p>
-          <div style="position:relative;">
+          <div style="position:relative; text-align:center;">
         <img id="main-img" src="${imgs[0]}" style="width:100%;border-radius:8px;cursor:zoom-in;">
         <span class="nav-arrow nav-left">&#10094;</span>
         <span class="nav-arrow nav-right">&#10095;</span>
-        <button class="play-btn">${this.isPlaying?"Pause":"Play"}</button>
+        <div style="margin-top:10px;">
+          <button class="play-btn" style="
+            padding:10px 20px; font-size:16px;
+            background: rgba(0,0,0,0.4); color:#fff; border:none; border-radius:6px;
+            cursor:pointer;
+          ">${this.isPlaying?"Pause":"Play"}</button>
+        </div>
       </div>
-      <div class="miniaturas">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}" style="cursor:pointer;width:50px;height:50px;object-fit:cover;border-radius:6px;">`).join('')}</div>
+      <div class="miniaturas" style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
+        ${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'selected':''}" style="cursor:pointer;width:50px;height:50px;object-fit:cover;border-radius:6px;">`).join('')}
+      </div>
       <a class="btn-whatsapp" href="https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Ol%C3%A1,%20interessei-me%20no%20im%C3%B3vel%20${encodeURIComponent(imovel.titulo)}" target="_blank">WhatsApp</a>
         `;
 
