@@ -283,7 +283,7 @@
           <p><span class="info-item">💰</span> <b>Preço:</b> R$ ${Number(imovel.preco).toLocaleString()} <span style="margin-left:8px">🌆 <b>Cidade:</b> ${imovel.cidade}</span> <span style="margin-left:8px">🏘️ <b>Bairro:</b> ${imovel.bairro||''}</span></p>
           <p><span class="info-item">🏷️</span> <b>Tipo:</b> ${imovel.tipo||''} <span style="margin-left:8px">⚖️ <b>Operação:</b> ${imovel.operacao||''}</span></p>
           <p><span class="info-item">📐</span> <b>Área Construída:</b> ${imovel.area||0}m² <span style="margin-left:8px">🌳 <b>Área Total:</b> ${imovel.area_total||0}m²</span></p>
-          <p><span class="info-item">A partir de 🛏️</span> <b>Quartos:</b> ${imovel.quartos||0} <span style="margin-left:8px">🛁 <b>Banheiros:</b> ${imovel.banheiros||0}</span> <span style="margin-left:8px">🚗 <b>Garagem:</b> ${imovel.garagem||0}</span></p>
+          <p><span class="info-item">Mínimo de 🛏️</span> <b>Quartos:</b> ${imovel.quartos||0} <span style="margin-left:8px">🛁 <b>Banheiros:</b> ${imovel.banheiros||0}</span> <span style="margin-left:8px">🚗 <b>Garagem:</b> ${imovel.garagem||0}</span></p>
           <p><span class="info-item">🏛️</span> <b>IPTU:</b> R$ ${Number(imovel.iptu).toLocaleString()} <span style="margin-left:8px">🏢 <b>Condomínio:</b> R$ ${Number(imovel.condominio).toLocaleString()}</span> <span style="margin-left:8px">📦 <b>Condomínio Incluso?:</b> ${imovel.cond_incluso||''}</span> <span style="margin-left:8px">🐾 <b>Aceita Pet?:</b> ${imovel.aceita_pet||''}</span></p>
           <p style="white-space:pre-wrap">${imovel.descricao||''}</p>
           <div style="position:relative; text-align:center;">
@@ -451,7 +451,7 @@
               </div>
               <div>
                 <p class="info-line"><span class="info-item">🌆 ${i.cidade||''}</span> <span class="info-item">🏷️ ${i.tipo||''}</span> <span class="info-item">⚖️ ${i.operacao||''}</span></p>
-                <p class="info-line"><span class="info-item">A partir de 🛏️ ${i.quartos || 0} quartos</span><span class="info-item">🛁 ${i.banheiros || 0} banheiros</span><span class="info-item">🚗 ${i.garagem || 0} garagem</span></p>
+                <p class="info-line"><span class="info-item">Mínimo de 🛏️ ${i.quartos || 0} quartos</span><span class="info-item">🛁 ${i.banheiros || 0} banheiros</span><span class="info-item">🚗 ${i.garagem || 0} garagem</span></p>
                 <p class="info-line"><span class="info-item">🏘️ Bairro: ${i.bairro||''}</span> <span class="info-item">🆔 ${i.ref||''}</span></p>
               </div>
               <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
@@ -520,7 +520,7 @@
         const container=document.getElementById('destaques'); container.innerHTML='';
         this.cards=this.imoveis.map(i=>{
           const card=document.createElement('div'); card.className='destaque-card';
-          card.innerHTML=`<img src="${(i.imagens||'').split(' ')[0]||'https://via.placeholder.com/200x120'}" alt="${i.titulo}"><p>🏠 ${i.titulo}</p><p class="destaque-sub">💰 A partir de R$ ${Number(i.preco).toLocaleString()}</p><p style="font-size:12px; color:#555; margin:4px 0;">A partir de 🛏️ ${i.quartos || 0} • 🛁 ${i.banheiros || 0} • 🚗 ${i.garagem || 0}</p>`;
+          card.innerHTML=`<img src="${(i.imagens||'').split(' ')[0]||'https://via.placeholder.com/200x120'}" alt="${i.titulo}"><p>🏠 ${i.titulo}</p><p class="destaque-sub">💰 A partir de R$ ${Number(i.preco).toLocaleString()}</p><p style="font-size:12px; color:#555; margin:4px 0;">Mínimo de 🛏️ ${i.quartos || 0} • 🛁 ${i.banheiros || 0} • 🚗 ${i.garagem || 0}</p>`;
           container.appendChild(card);
           return card;
         });
