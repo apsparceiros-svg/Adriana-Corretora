@@ -6,25 +6,25 @@
   <title>App de Imóveis - Completo</title>
   <style>
     /* ==================== RESET & GERAL ==================== */
-   body {
+  body {
   font-family: 'Segoe UI', sans-serif;
-  background-image: url('https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
   background-attachment: fixed;
+  transition: background-image 2s ease-in-out; /* efeito de transição suave */
   margin: 0;
   padding: 0;
   min-height: 100vh;
 }
 
-/* filtro leve (ajuste a opacidade se quiser mais claro) */
+/* camada escura suave pra destacar o conteúdo */
 body::before {
   content: "";
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.25);
   z-index: -1;
 }
 
@@ -270,6 +270,21 @@ body::before {
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
+
+    const praias = [
+  "https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80", // Ubatuba - mar azul
+  "https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80", // vista aérea
+  "https://images.unsplash.com/photo-1583241801511-9de0b7e3cf86?auto=format&fit=crop&w=1920&q=80", // praia e vegetação
+  "https://images.unsplash.com/photo-1623360194708-918bb0e8db11?auto=format&fit=crop&w=1920&q=80"  // pôr do sol em Ubatuba
+];
+
+let index = 0;
+function mudarFundo() {
+  document.body.style.backgroundImage = `url('${praias[index]}')`;
+  index = (index + 1) % praias.length;
+}
+mudarFundo(); // carrega a primeira
+setInterval(mudarFundo, 10000); // troca a cada 10 segundos
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
