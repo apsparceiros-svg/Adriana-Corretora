@@ -6,26 +6,27 @@
   <title>App de Imóveis - Completo</title>
   <style>
     /* ==================== RESET & GERAL ==================== */
-    body {
+   body {
   font-family: 'Segoe UI', sans-serif;
   background-image: url('https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  background-attachment: fixed; /* mantém o fundo fixo na rolagem */
+  background-attachment: fixed; /* fundo fixo ao rolar */
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh; /* garante altura mínima */
 }
 
-/* filtro leve para destacar os cards */
+/* camada escura leve para melhorar contraste */
 body::before {
   content: "";
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.25); /* sombra leve sobre o fundo */
+  background: rgba(0, 0, 0, 0.35);
   z-index: -1;
 }
 
