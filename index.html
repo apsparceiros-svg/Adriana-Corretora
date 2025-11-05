@@ -261,18 +261,30 @@
     const whatsappNumber = "5512992468636";
 
     const fundos = [
-  "https://images.unsplash.com/photo-1507525428034-8f6be45a5e14?auto=format&fit=crop&w=1600&q=80", // cidade 1
-  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80", // cidade 2
-  "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1600&q=80", // cidade 3
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80"  // cidade 4
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1507525428034-8f6be45a5e14?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80"
 ];
+
+// Pré-carrega todas as imagens antes de iniciar a troca
+fundos.forEach(src => {
+  const img = new Image();
+  img.src = src;
+});
 
 let indice = 0;
 
 setInterval(() => {
   indice = (indice + 1) % fundos.length;
-  document.body.style.backgroundImage = `url('${fundos[indice]}')`;
-}, 10000); // muda a cada 10 segundos
+  const novaImagem = fundos[indice];
+  const img = new Image();
+  img.src = novaImagem;
+  img.onload = () => {
+    document.body.style.backgroundImage = `url('${novaImagem}')`;
+  };
+}, 10000); // troca a cada 10 segundos
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
