@@ -6,16 +6,16 @@
   <title>App de Imóveis - Completo</title>
   <style>
     /* ==================== RESET & GERAL ==================== */
-    body {
+   body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden; /* evita scroll indesejado */
+  /* ✅ Removido overflow: hidden para permitir rolagem */
 }
 
-/* container do slideshow */
+/* container fixo apenas para o fundo */
 #fundo {
   position: fixed;
   top: 0;
@@ -23,10 +23,10 @@
   width: 100%;
   height: 100%;
   z-index: -2;
-  overflow: hidden;
+  pointer-events: none; /* não interfere com cliques */
 }
 
-/* duas camadas para o efeito fade */
+/* camadas de imagem com fade */
 .bg {
   position: absolute;
   top: 0;
@@ -43,7 +43,7 @@
   opacity: 1;
 }
 
-/* camada de leve escurecimento para contraste */
+/* leve camada escura para contraste */
 #fundo::after {
   content: "";
   position: absolute;
