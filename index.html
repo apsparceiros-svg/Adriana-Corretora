@@ -12,12 +12,23 @@
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  background-attachment: fixed; /* 🔒 mantém a imagem fixa na rolagem */
+  background-attachment: fixed; /* mantém o fundo fixo na rolagem */
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* filtro leve para destacar os cards */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.25); /* sombra leve sobre o fundo */
+  z-index: -1;
+}
+
     #imoveis-app input, #imoveis-app select {
       padding: 8px 10px;
       margin: 5px 0 15px 0;
