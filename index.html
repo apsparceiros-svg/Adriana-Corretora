@@ -280,7 +280,7 @@ body > * {
     const whatsappNumber = "5512992468636";
 
     /* --- Fundo com fotos de Ubatuba --- */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const praias = [
     "https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80",
     "https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80",
@@ -299,11 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 500);
   }
 
-  // garante que uma imagem apareça logo no início
+  // mostra a primeira imagem logo que a página carrega
   document.body.style.backgroundImage = `url('${praias[0]}')`;
-  document.addEventListener("DOMContentLoaded", () => {
-  mudarFundo(); // primeira imagem
-  setInterval(mudarFundo, 10000); // troca a cada 10s
+  document.body.style.opacity = 1;
+
+  // começa a trocar depois de 10 segundos
+  setInterval(mudarFundo, 10000);
 });
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
