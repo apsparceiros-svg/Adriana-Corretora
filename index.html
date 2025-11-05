@@ -279,20 +279,27 @@ body > * {
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
 
+    /* --- Fundo com fotos de Ubatuba --- */
     const praias = [
-  "https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80", // Ubatuba - mar azul
-  "https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80", // vista aérea
-  "https://images.unsplash.com/photo-1583241801511-9de0b7e3cf86?auto=format&fit=crop&w=1920&q=80", // praia e vegetação
-  "https://images.unsplash.com/photo-1623360194708-918bb0e8db11?auto=format&fit=crop&w=1920&q=80"  // pôr do sol em Ubatuba
-];
+      "https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1583241801511-9de0b7e3cf86?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1623360194708-918bb0e8db11?auto=format&fit=crop&w=1920&q=80"
+    ];
 
-let index = 0;
-function mudarFundo() {
-  document.body.style.backgroundImage = `url('${praias[index]}')`;
-  index = (index + 1) % praias.length;
-}
-mudarFundo(); // carrega a primeira
-setInterval(mudarFundo, 10000); // troca a cada 10 segundos
+    let index = 0;
+
+    function mudarFundo() {
+      document.body.style.opacity = 0;
+      setTimeout(() => {
+        document.body.style.backgroundImage = `url('${praias[index]}')`;
+        document.body.style.opacity = 1;
+        index = (index + 1) % praias.length;
+      }, 500);
+    }
+
+    mudarFundo(); // primeira imagem
+    setInterval(mudarFundo, 10000); // troca a cada 10s
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
