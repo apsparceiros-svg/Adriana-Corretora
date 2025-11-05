@@ -8,25 +8,23 @@
     /* ==================== RESET & GERAL ==================== */
    body {
   font-family: 'Segoe UI', sans-serif;
-  background-image: url('https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80');
+  background-image: url('https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  background-attachment: fixed; /* fundo fixo ao rolar */
+  background-attachment: fixed;
   margin: 0;
   padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  min-height: 100vh; /* garante altura mínima */
+  min-height: 100vh;
 }
 
-/* camada escura leve para melhorar contraste */
+/* filtro leve (ajuste a opacidade se quiser mais claro) */
 body::before {
   content: "";
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.15);
   z-index: -1;
 }
 
