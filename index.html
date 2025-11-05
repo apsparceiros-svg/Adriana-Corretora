@@ -8,13 +8,51 @@
     /* ==================== RESET & GERAL ==================== */
     body {
   font-family: 'Segoe UI', sans-serif;
-  background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80') no-repeat center center fixed;
-  background-size: cover;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-image 1.5s ease-in-out; /* transição suave */
+  overflow: hidden; /* evita scroll indesejado */
+}
+
+/* container do slideshow */
+#fundo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+}
+
+/* duas camadas para o efeito fade */
+.bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  transition: opacity 2s ease-in-out;
+  opacity: 0;
+}
+
+.bg.active {
+  opacity: 1;
+}
+
+/* camada de leve escurecimento para contraste */
+#fundo::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.25);
+  z-index: 1;
 }
 
     #imoveis-app input, #imoveis-app select {
@@ -219,6 +257,12 @@
   </style>
 </head>
 <body>
+
+  <div id="fundo">
+  <div class="bg active" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80');"></div>
+  <div class="bg" style="background-image: url('https://images.unsplash.com/photo-1507525428034-8f6be45a5e14?auto=format&fit=crop&w=1600&q=80');"></div>
+</div>
+  
   <!-- Destaques -->
   <div id="destaques-container">
     <span class="nav-arrow destaque-left">&#10094;</span>
@@ -260,7 +304,7 @@
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
 
-    const fundos = [
+    const imagens = [
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1507525428034-8f6be45a5e14?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
@@ -268,24 +312,29 @@
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80"
 ];
 
-// Pré-carrega todas as imagens antes de iniciar a troca
-fundos.forEach(src => {
-  const img = new Image();
-  img.src = src;
-});
+// pré-carrega todas as imagens
+imagens.forEach(src => { const img = new Image(); img.src = src; });
+
+const bg1 = document.querySelectorAll('.bg')[0];
+const bg2 = document.querySelectorAll('.bg')[1];
 
 let indice = 0;
+let ativo = true;
 
 setInterval(() => {
-  indice = (indice + 1) % fundos.length;
-  const novaImagem = fundos[indice];
-  const img = new Image();
-  img.src = novaImagem;
-  img.onload = () => {
-    document.body.style.backgroundImage = `url('${novaImagem}')`;
-  };
-}, 10000); // troca a cada 10 segundos
+  indice = (indice + 1) % imagens.length;
+  const novaImagem = imagens[indice];
 
+  const bgAtivo = ativo ? bg1 : bg2;
+  const bgInativo = ativo ? bg2 : bg1;
+
+  bgInativo.style.backgroundImage = `url('${novaImagem}')`;
+  bgInativo.classList.add('active');
+  bgAtivo.classList.remove('active');
+
+  ativo = !ativo;
+}, 10000); // troca a cada 10 segundos
+    
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
   constructor(id, config={ autoplay:true, delay:3000 }) {
