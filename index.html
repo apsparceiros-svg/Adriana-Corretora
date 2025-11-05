@@ -301,8 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // garante que uma imagem apareça logo no início
   document.body.style.backgroundImage = `url('${praias[0]}')`;
-  mudarFundo();
-  setInterval(mudarFundo, 10000);
+  document.addEventListener("DOMContentLoaded", () => {
+  mudarFundo(); // primeira imagem
+  setInterval(mudarFundo, 10000); // troca a cada 10s
 });
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
