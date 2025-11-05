@@ -7,15 +7,17 @@
   <style>
     /* ==================== RESET & GERAL ==================== */
   body {
+  position: relative; /* <=== ESSENCIAL para o ::before funcionar */
   font-family: 'Segoe UI', sans-serif;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  background-attachment: fixed;
-  transition: background-image 2s ease-in-out; /* efeito de transição suave */
+  background-attachment: fixed; /* fundo fixo */
+  transition: background-image 2s ease-in-out;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  background-color: #000; /* fundo base preto, evita "cinza" */
 }
 
 /* camada escura suave pra destacar o conteúdo */
@@ -24,8 +26,14 @@ body::before {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.25);
-  z-index: -1;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 0; /* atrás do conteúdo, mas acima do fundo */
+}
+
+/* garante que o conteúdo fique acima da camada escura */
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
     #imoveis-app input, #imoveis-app select {
