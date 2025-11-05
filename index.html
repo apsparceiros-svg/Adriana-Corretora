@@ -510,35 +510,112 @@
     }
 
     class Destaques {
-      constructor(imoveis,palavrasChave=['destaques','premium','top']){
-        this.palavrasChave=palavrasChave.map(p=>p.toLowerCase());
-        this.imoveis=imoveis.filter(i=>i.descricao && this.palavrasChave.some(p=>i.descricao.toLowerCase().includes(p)));
-        if(this.imoveis.length===0) return;
-        this.renderDestaques();
+  constructor(imoveis, palavrasChave = ['destaques', 'premium', 'top']) {
+    this.palavrasChave = palavrasChave.map(p => p.toLowerCase());
+    this.imoveis = imoveis.filter(i => 
+      i.descricao && this.palavrasChave.some(p => i.descricao.toLowerCase().includes(p))
+    );
+    if (this.imoveis.length === 0) return;
+    this.renderDestaques();
+  }
+
+  renderDestaques() {
+    const container = document.getElementById('destaques');
+    container.innerHTML = '';
+
+    this.cards = this.imoveis.map(i => {
+      const card = document.createElement('div');
+      card.className = 'destaque-card';
+      card.innerHTML = `
+        <img src="${(i.imagens || '').split(' ')[0] || 'https://via.placeholder.com/200x120'}" alt="${i.titulo}">
+        <p>🏠 ${i.titulo}</p>
+        <p class="destaque-sub">💰 A partir de R$ ${Number(i.preco).toLocaleString()}</p>
+        <p style="font-size:12px; color:#555; margin:4px 0;">
+          Mínimo de 🛏️ ${i.quartos || 0} • 🛁 ${i.banheiros || 0} • 🚗 ${i.garagem || 0}
+        </p>`;
+      container.appendChild(card);
+      return card;
+    });
+
+    // Duplica os cards para criar looping suave
+    this.cards.forEach(c => container.appendChild(c.cloneNode(true)));
+
+    const modal = new ModalImovel('detalhesModal');
+    container.querySelectorAll('.destaque-card')
+      .forEach((c, idx) => c.onclick = () => modal.abrir(this.imoveis[idx % this.imoveis.length]));
+
+    const cardWidth = this.cards[0]?.offsetWidth + 12 || 172;
+    let pos = 0;
+    const total = cardWidth * this.cards.length;
+
+    // ===== Autoplay Controlado =====
+    let autoPlayTimer = null;
+    const step = () => {
+      pos += cardWidth;
+      if (pos >= total) pos = 0;
+      container.scrollTo({ left: pos, behavior: 'smooth' });
+    };
+
+    const startAutoPlay = () => {
+      stopAutoPlay();
+      autoPlayTimer = setInterval(step, 4000);
+    };
+
+    const stopAutoPlay = () => {
+      if (autoPlayTimer) clearInterval(autoPlayTimer);
+      autoPlayTimer = null;
+    };
+
+    startAutoPlay();
+
+    // ===== Controles manuais =====
+    const prevBtn = document.querySelector('.destaque-left');
+    const nextBtn = document.querySelector('.destaque-right');
+
+    const movePrev = () => {
+      stopAutoPlay();
+      pos -= cardWidth;
+      if (pos < 0) pos = total - cardWidth;
+      container.scrollTo({ left: pos, behavior: 'smooth' });
+      setTimeout(startAutoPlay, 5000);
+    };
+
+    const moveNext = () => {
+      stopAutoPlay();
+      pos += cardWidth;
+      if (pos >= total) pos = 0;
+      container.scrollTo({ left: pos, behavior: 'smooth' });
+      setTimeout(startAutoPlay, 5000);
+    };
+
+    prevBtn.onclick = movePrev;
+    nextBtn.onclick = moveNext;
+
+    // ===== Pausar autoplay no hover (desktop) =====
+    container.addEventListener('mouseenter', stopAutoPlay);
+    container.addEventListener('mouseleave', () => setTimeout(startAutoPlay, 1000));
+
+    // ===== Suporte ao arraste no celular =====
+    let startX = 0, isDragging = false;
+    container.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      stopAutoPlay();
+    });
+    container.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const diff = startX - e.touches[0].clientX;
+      if (Math.abs(diff) > 30) {
+        diff > 0 ? moveNext() : movePrev();
+        isDragging = false;
       }
-      renderDestaques(){
-        const container=document.getElementById('destaques'); container.innerHTML='';
-        this.cards=this.imoveis.map(i=>{
-          const card=document.createElement('div'); card.className='destaque-card';
-          card.innerHTML=`<img src="${(i.imagens||'').split(' ')[0]||'https://via.placeholder.com/200x120'}" alt="${i.titulo}"><p>🏠 ${i.titulo}</p><p class="destaque-sub">💰 A partir de R$ ${Number(i.preco).toLocaleString()}</p><p style="font-size:12px; color:#555; margin:4px 0;">Mínimo de 🛏️ ${i.quartos || 0} • 🛁 ${i.banheiros || 0} • 🚗 ${i.garagem || 0}</p>`;
-          container.appendChild(card);
-          return card;
-        });
-        // duplicate cards to allow smooth looping
-        this.cards.forEach(c=>container.appendChild(c.cloneNode(true)));
-        const modal=new ModalImovel('detalhesModal');
-        container.querySelectorAll('.destaque-card').forEach((c,idx)=>c.onclick=()=>modal.abrir(this.imoveis[idx%this.imoveis.length]));
-        const w=this.cards[0]?.offsetWidth+12||172; let pos=0; const total=w*this.cards.length;
-        const step=()=>{ pos+=w; if(pos>=total/2) pos=0; container.scrollTo({left:pos,behavior:'smooth'}); };
-        const intervalId = setInterval(step,4000);
-        document.querySelector('.destaque-left').onclick=()=>{ pos-=w; if(pos<0) pos=total/2-w; container.scrollTo({left:pos,behavior:'smooth'}); };
-        document.querySelector('.destaque-right').onclick=()=>{ pos+=w; if(pos>=total/2) pos=0; container.scrollTo({left:pos,behavior:'smooth'}); };
-        let startX=0,isDrag=false;
-        container.addEventListener('touchstart',e=>{ startX=e.touches[0].clientX; isDrag=true; });
-        container.addEventListener('touchmove',e=>{ if(!isDrag) return; const diff=startX-e.touches[0].clientX; if(Math.abs(diff)>30){ pos+=diff>0?w:-w; if(pos>=total/2) pos=0; if(pos<0) pos=total/2-w; container.scrollTo({left:pos,behavior:'smooth'}); startX=e.touches[0].clientX; } });
-        container.addEventListener('touchend',()=>{ isDrag=false; });
-      }
-    }
+    });
+    container.addEventListener('touchend', () => {
+      isDragging = false;
+      setTimeout(startAutoPlay, 5000);
+    });
+  }
+}
 
     class ModalCalendario {
       constructor(id){
