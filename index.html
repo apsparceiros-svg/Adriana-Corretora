@@ -6,34 +6,27 @@
   <title>App de Imóveis - Completo</title>
   <style>
     /* ==================== RESET & GERAL ==================== */
-  body {
-  position: relative; /* <=== ESSENCIAL para o ::before funcionar */
+    body {
   font-family: 'Segoe UI', sans-serif;
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
-  background-attachment: fixed; /* fundo fixo */
-  transition: background-image 2s ease-in-out;
+  background: url('https://images.unsplash.com/photo-1508051123996-69f8caf4891e?auto=format&fit=crop&w=1600&q=80') no-repeat center center fixed;
+  background-size: cover;  /* cobre toda a tela */
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  background-color: #000; /* fundo base preto, evita "cinza" */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
 }
 
-/* camada escura suave pra destacar o conteúdo */
+/* camada escura opcional para dar contraste */
 body::before {
   content: "";
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 0; /* atrás do conteúdo, mas acima do fundo */
-}
-
-/* garante que o conteúdo fique acima da camada escura */
-body > * {
-  position: relative;
-  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.25); /* ajuste 0.25 → mais claro / 0.5 → mais escuro */
+  z-index: -1; /* mantém atrás de todo o conteúdo */
 }
 
     #imoveis-app input, #imoveis-app select {
@@ -235,16 +228,6 @@ body > * {
 
     /* ==================== RESPONSIVO ==================== */
     @media(max-width:480px){ .modal-content .nav-arrow, .card h3{ font-size:14px; } .card p, .card p.preco{ font-size:12px; } }
-
-    html, body {
-  height: 100%;
-}
-
-body {
-  opacity: 0;
-  transition: opacity 1s ease-in-out, background-image 2s ease-in-out;
-}
-
   </style>
 </head>
 <body>
@@ -288,34 +271,6 @@ body {
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4c2-Gi7ANJkDp7exGoOw17T8Sh-5Gw7Ioi8ZgSCT4skcLLwULZuHhmUnQvw4Ke7dmG4VWuHDbRCuV/pub?gid=506124050&single=true&output=csv";
     const whatsappNumber = "5512992468636";
-
-    /* --- Fundo com fotos de Ubatuba --- */
-document.addEventListener("DOMContentLoaded", () => {
-  const praias = [
-    "https://images.unsplash.com/photo-1590080875832-70b70862b0cc?auto=format&fit=crop&w=1920&q=80",
-    "https://images.unsplash.com/photo-1603726277848-fd44e6676a2a?auto=format&fit=crop&w=1920&q=80",
-    "https://images.unsplash.com/photo-1583241801511-9de0b7e3cf86?auto=format&fit=crop&w=1920&q=80",
-    "https://images.unsplash.com/photo-1623360194708-918bb0e8db11?auto=format&fit=crop&w=1920&q=80"
-  ];
-
-  let index = 0;
-
-  function mudarFundo() {
-    document.body.style.opacity = 0;
-    setTimeout(() => {
-      document.body.style.backgroundImage = `url('${praias[index]}')`;
-      document.body.style.opacity = 1;
-      index = (index + 1) % praias.length;
-    }, 500);
-  }
-
-  // mostra a primeira imagem logo que a página carrega
-  document.body.style.backgroundImage = `url('${praias[0]}')`;
-  document.body.style.opacity = 1;
-
-  // começa a trocar depois de 10 segundos
-  setInterval(mudarFundo, 10000);
-});
 
     /* ==================== MODAL COMPLETO COM OVERLAY ==================== */
     class ModalImovel {
